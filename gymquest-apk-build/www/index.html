@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GymQuest</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#000;--card:#111a17;--card2:#2a3833;--chip:#17301f;--tx:#fff;--mu:#a9b5b0;--gr:#9fdfb4;--gr2:#55966c;--ln:#222;--tr:#292f2c;--ink:#0d1a12;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme=dark]){--bg:#000}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:Roboto,system-ui,sans-serif}
+body{max-width:520px;margin:0 auto;padding:12px 14px calc(84px + env(safe-area-inset-bottom,0px))}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:28px;padding:20px;margin-bottom:14px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.cap{font-size:13px;font-weight:600;letter-spacing:.02em;color:var(--mu);text-transform:uppercase}
+.pill{background:var(--chip);color:#4caf6a;border-radius:999px;padding:7px 14px;font-size:13px;font-weight:700;text-transform:uppercase;white-space:nowrap}
+.pill.off{background:#3a2a12;color:#e0a44a}
+h1{font-size:clamp(24px,8vw,34px);margin:14px 0 6px;text-align:center;text-transform:uppercase;line-height:1.1;overflow-wrap:anywhere;hyphens:auto}
+h2{font-size:22px;margin:0 0 12px;overflow-wrap:anywhere}
+.big{font-size:clamp(26px,10vw,44px);overflow-wrap:anywhere;font-weight:700;color:var(--gr);text-align:center;margin:4px 0}
+.sub{color:var(--mu);text-align:center;font-size:14px;margin:0 0 14px}
+.box{background:var(--card2);border-radius:20px;padding:16px;margin:12px 0}
+.box b{display:block;font-size:clamp(18px,6vw,24px);overflow-wrap:anywhere;text-transform:uppercase;margin-bottom:6px}
+.box span{color:#d5ded9;font-size:14px;line-height:1.4}
+.bar{height:10px;border-radius:99px;background:var(--tr);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--gr);border-radius:99px}
+button{font:inherit;cursor:pointer}
+.cta{width:100%;min-height:56px;border:0;border-radius:24px;background:var(--gr);color:var(--ink);font-size:20px;font-weight:700;text-transform:uppercase;margin-top:14px}
+.ghost{width:100%;min-height:48px;border:1px solid var(--card2);background:none;color:var(--mu);border-radius:20px;margin-top:8px;font-size:15px}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.tile{background:#232323;border-radius:20px;padding:14px 4px;text-align:center}
+.tile b{display:block;font-size:20px;margin:6px 0 2px}.tile span{color:var(--mu);font-size:13px}
+.xp{display:flex;gap:14px;align-items:center;margin:14px 0}
+.xp .ic{width:72px;height:72px;border-radius:18px;background:#232323;display:grid;place-items:center;font-size:30px}
+.xp b{font-size:40px;line-height:1}
+.hero{height:180px;border-radius:22px;background:radial-gradient(circle at 50% 35%,#c9772c 0,#2a1a0d 45%,#0a0a0a 100%);display:grid;place-items:center;font-size:64px;position:relative}
+.hero em{position:absolute;left:12px;bottom:12px;background:#0008;border-radius:99px;padding:8px 14px;font-style:normal;font-size:14px;font-weight:700}
+.opts{display:grid;gap:8px;margin-top:10px}
+.opt{min-height:48px;border-radius:16px;border:1px solid var(--gr2);background:none;color:var(--tx);text-align:left;padding:10px 14px}
+.opt.on{background:var(--gr);color:var(--ink);font-weight:700}
+nav{position:fixed;left:0;right:0;bottom:0;background:#0b0f0d;border-top:1px solid var(--ln);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom,0px)}
+nav div{display:flex;width:100%;max-width:520px}
+nav button{flex:1;min-height:64px;background:none;border:0;color:var(--mu);font-size:12px;display:grid;place-items:center;align-content:center;gap:2px}
+nav button .e{font-size:20px}nav button.on{color:var(--gr)}
+input,select{width:100%;min-height:48px;border-radius:14px;border:1px solid var(--card2);background:#0b120f;color:var(--tx);font:inherit;padding:0 12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0}
+label{font-size:12px;color:var(--mu)}
+.note{color:var(--mu);font-size:13px;line-height:1.45}
+.sets{margin:8px 0;font-size:14px;color:#d5ded9}
+.hist{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--ln);font-size:15px}
+.toast{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--gr);color:var(--ink);padding:10px 18px;border-radius:99px;font-weight:700;z-index:9}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<nav><div id="nav"></div></nav>
+<script>
+"use strict";
+// ---------- Catálogo (revisável) ----------
+const EX_OLD={
+ supino:{n:"Supino reto",m:"Peito",eq:"Barra",rg:[6,10],step:2},
+ inclinado:{n:"Supino inclinado",m:"Peito",eq:"Barra/halteres",rg:[6,10],step:2},
+ triceps:{n:"Tríceps pulley",m:"Tríceps",eq:"Polia",rg:[8,12],step:2.5},
+ puxada:{n:"Puxada alta",m:"Costas",eq:"Polia",rg:[8,12],step:2.5},
+ barra:{n:"Barra fixa",m:"Costas e bíceps",eq:"Barra fixa",rg:[3,8],step:0}
+};
+const X=(n,m,eq,step,rg,u)=>({n,m,eq,step,rg,u:u||"total"}),H="por halter";
+const EX={
+ supino:X("Supino reto com barra","Peito","Barra",2,[6,8]),puxada_ab:X("Puxada aberta","Costas","Polia",2.5,[10,15]),
+ inclinado:X("Supino inclinado com halteres","Peito","Halteres",2,[8,10],H),remada_ap:X("Remada apoiada","Costas","Máquina",2.5,[10,15]),
+ paralela:X("Paralela","Peito e tríceps","Peso corporal (+carga)",2.5,[8,10],"carga extra; 0 = só o corpo"),lateral:X("Elevação lateral","Ombros","Halteres",1,[12,20],H),
+ triceps:X("Tríceps na polia","Tríceps","Polia",2.5,[10,15]),rosca:X("Rosca direta","Bíceps","Barra",2,[8,12]),
+ puxada:X("Puxada alta","Costas","Polia",2.5,[6,10]),remada_c:X("Remada curvada ou máquina","Costas","Barra/máquina",2.5,[8,12]),
+ puxada_un:X("Puxada unilateral","Costas","Polia",2.5,[10,15]),remada_b:X("Remada baixa","Costas","Polia",2.5,[10,15]),
+ voador:X("Voador reverso","Ombro posterior","Máquina",2.5,[12,20]),rosca_inc:X("Rosca inclinada","Bíceps","Halteres",1,[8,12],H),
+ scott:X("Rosca Scott","Bíceps","Barra/máquina",2,[10,15]),agach:X("Agachamento/Smith","Pernas","Smith/barra",5,[6,10]),
+ legpress:X("Leg press","Pernas","Máquina",5,[8,12]),flexora:X("Mesa flexora","Posterior de coxa","Máquina",2.5,[10,15]),
+ pantu:X("Panturrilha","Panturrilha","Máquina",5,[10,15]),desenv:X("Desenvolvimento com halteres","Ombros","Halteres",2,[6,10],H),
+ puxada_n:X("Puxada neutra","Costas","Polia",2.5,[8,12]),remada_un:X("Remada unilateral","Costas","Halter",2,[8,12],H),
+ pulldown:X("Pulldown com braço estendido","Costas","Polia",2.5,[12,15]),inclinado_b:X("Supino inclinado (sexta)","Peito","A definir (barra/Smith/máquina)",2,[8,12]),
+ frances:X("Tríceps francês","Tríceps","Halter/barra W",1,[8,12]),lateral_cabo:X("Elevação lateral máquina/cabo","Ombros","Máquina/cabo",2.5,[15,20]),
+ barra:X("Barra fixa","Costas e bíceps","Barra fixa",0,[3,8],"carga extra; 0 = só o corpo")
+};
+// [exercício, séries, rep mín, rep máx, estímulo leve]
+const PLANS={
+ seg:{s:"Seg",t:"Segunda · Upper A",l:[["supino",3,6,8],["puxada_ab",2,10,15,1],["inclinado",3,8,10],["remada_ap",2,10,15,1],["paralela",3,8,10],["lateral",4,12,20],["triceps",3,10,15],["rosca",2,10,15]]},
+ ter:{s:"Ter",t:"Terça · Pull",l:[["puxada",3,6,10],["remada_c",3,8,12],["puxada_un",3,10,15],["remada_b",2,10,15],["voador",3,12,20],["rosca_inc",3,8,12],["scott",2,10,15]]},
+ qui:{s:"Qui",t:"Quinta · Lower + Ombros",l:[["agach",3,6,10],["legpress",3,8,12],["flexora",3,10,15],["pantu",4,10,15],["desenv",3,6,10],["lateral",4,12,20],["voador",2,12,20]]},
+ sex:{s:"Sex",t:"Sexta · Upper B",l:[["puxada_n",3,8,12],["remada_un",3,8,12],["pulldown",2,12,15],["lateral",4,12,20],["inclinado_b",2,8,12],["rosca",3,8,12],["frances",3,8,12],["lateral_cabo",2,15,20]]}
+};
+const DOW={1:"seg",2:"ter",4:"qui",5:"sex"};let selDay=null,editId=null;
+const curDay=()=>selDay||DOW[new Date().getDay()]||null;
+const curPlan=()=>(curDay()?PLANS[curDay()].l:[]).concat(S.found.barra==="accepted"||S.found.barra==="unlocked"?[["barra",2,1,5,1]]:[]);
+const chips=()=>Object.keys(PLANS).map(k=>`<button class="opt ${curDay()===k?"on":""}" style="min-height:40px;width:auto;display:inline-block;margin:6px 6px 0 0;padding:6px 12px" data-day="${k}">${PLANS[k].s}</button>`).join("");
+function nextDay(){for(let i=1;i<=7;i++){const d=DOW[(new Date().getDay()+i)%7];if(d)return PLANS[d].t}return""}
+function restCard(){const wd=new Date().toLocaleDateString("pt-BR",{weekday:"long"}).toUpperCase();return`<div class="card"><div class="row"><span class="cap">Hoje · ${wd}</span>${sync()}</div><h1>Dia de recuperação</h1><p class="sub">Descanso também faz parte da evolução.</p><div class="box"><b>Missão leve</b><span>Mobilidade leve ou uma caminhada, se quiser. Sem meta de carga. Próximo treino: ${nextDay()}.</span></div><button class="cta" data-go="train">Ver treinos</button></div>`}
+function restTrain(){return`<div class="card"><h2>Dia de descanso</h2><p class="note">Seu plano não tem treino hoje. Se quiser treinar mesmo assim, escolha um treino abaixo (opcional).</p>${chips()}</div>`}
+const LEVEL_XP=250; // nível = floor(xp/250)+1 (configurável)
+const KEY="gymquest.v1";
+// ---------- Estado ----------
+let S={sets:[],xp:[],ch:{},found:{},pain:{},demo:false,fin:{}};
+try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const day=(d=new Date())=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const TODAY=day();
+let tab="home",pick=null,toastT;
+const uid=()=>(crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()));
+const e1=(w,r)=>w*(1+r/30);
+function toast(t){clearTimeout(toastT);let d=document.querySelector(".toast");if(!d){d=document.createElement("div");d.className="toast";document.body.appendChild(d)}d.textContent=t;toastT=setTimeout(()=>d.remove(),2200)}
+// ---------- Gamificação (idempotente, sem punição) ----------
+function award(id,amt,why){if(S.xp.some(x=>x.id===id))return false;S.xp.push({id,amt,why,at:Date.now()});return true}
+const xpTotal=()=>S.xp.reduce((a,x)=>a+x.amt,0);
+// ---------- Motor de progressão (determinístico) ----------
+function sessions(ex){const m={};S.sets.filter(s=>s.ex===ex&&!s.warm).forEach(s=>(m[s.day]=m[s.day]||[]).push(s));
+ return Object.keys(m).filter(d=>d<TODAY).sort().reverse().map(d=>({d,sets:m[d]}))}
+function recommend(ex,rg,ns){
+ const E=EX[ex],[lo,hi]=rg||E.rg;
+ if(S.pain[ex])return{state:"paused",why:"Você marcou dor ou restrição neste exercício. Interrompa a atividade dolorosa e busque avaliação apropriada antes de progredir."};
+ const ss=sessions(ex).filter(x=>x.d<TODAY||true);
+ if(!ss.length)return{state:"insufficient_data",why:"Ainda não há registros válidos deste exercício. Hoje o objetivo é familiarização técnica, sem aumento de carga."};
+ const last=ss[0],w=Math.max(...last.sets.map(s=>s.w)),at=last.sets.filter(s=>s.w===w),mn=Math.min(...at.map(s=>s.r));
+ const prev=ss[1],prevOk=prev&&prev.sets.length&&prev.sets.every(s=>s.r>=hi);
+ const base={w,last:`${w} kg × ${mn}`,src:`${last.d.split("-").reverse().join("/")}: ${at.map(s=>s.r).join(", ")} reps a ${w} kg`};
+ if(at.length>=(ns||2)&&mn>=hi){
+  if(prevOk)return{...base,state:"ready_for_load",nw:w+E.step,tr:lo,why:`Faixa superior (${hi}) atingida em duas sessões. Pequeno aumento de ${E.step} kg, voltando para ${lo} repetições.`};
+  return{...base,state:"consolidate",tr:hi,why:`Faixa superior atingida uma vez. Hoje é dia de consolidar: repita ${w} kg × ${hi} antes de subir a carga.`};}
+ if(prev){const pw=prev.sets.filter(s=>s.w===w);if(pw.length&&Math.min(...pw.map(s=>s.r))>mn)return{...base,state:"consolidate",tr:Math.min(...pw.map(s=>s.r)),why:"Sua última sessão ficou abaixo da anterior. Pode ser um episódio isolado: repita a carga e observe o próximo treino, sem mudar nada."}}
+ return{...base,state:"building_reps",nw:w,tr:Math.min(mn+1,hi),why:`Menor série da última sessão: ${mn} repetições. Meta: manter ${w} kg e buscar ${Math.min(mn+1,hi)} nas séries válidas, sem saltos de carga.`};
+}
+function todayChallengeOld(){
+ const d=DOW[new Date().getDay()],[ex,,lo,hi]=PLANS[d||"seg"].l[0];return{ex,rest:!d,r:recommend(ex,[lo,hi])}}
+// ---------- Métricas ----------
+function metrics(){
+ const days=[...new Set(S.sets.map(s=>s.day))];
+ const wk=days.filter(d=>(new Date(TODAY)-new Date(d))/864e5<7).length;
+ let prs=0;const best={};[...S.sets].sort((a,b)=>a.ts-b.ts).forEach(s=>{if(s.warm)return;const v=e1(s.w,s.r);if(best[s.ex]===undefined)best[s.ex]=v;else if(v>best[s.ex]+1e-9){prs++;best[s.ex]=v}});
+ const miss=Object.values(S.ch).filter(c=>c==="done").length;
+ return{days:days.length,wk,prs,miss,best}}
+// ---------- Views ----------
+function sync(){return`<span class="pill ${navigator.onLine?"":"off"}">${navigator.onLine?"Salvo neste aparelho":"Offline · salvo local"}</span>`}
+function homeOld(){
+ const {ex,r}=todayChallenge(),E=EX[ex],m=metrics(),xp=xpTotal(),lv=Math.floor(xp/LEVEL_XP)+1,nxt=lv*LEVEL_XP-xp;
+ const wd=new Date().toLocaleDateString("pt-BR",{weekday:"long"}).toUpperCase();
+ const done=S.ch[TODAY]==="done",acc=S.ch[TODAY]==="accepted";
+ let tgt,lastTxt,pct,head,desc;
+ if(r.state==="paused"){tgt="Pausado";head="Hoje, descanso nesse exercício";desc=r.why;pct=0;lastTxt=""}
+ else if(r.state==="insufficient_data"){tgt="Familiarização";head="Registre a primeira marca";desc=r.why;pct=0;lastTxt="Sem histórico ainda"}
+ else{tgt=`${r.nw} kg × ${r.tr}`;lastTxt="Sua última marca: "+r.last;head=r.state==="ready_for_load"?"+ "+(r.nw-r.w)+" KG":r.state==="consolidate"?"CONSOLIDAR":"+"+(r.tr-Math.min(...[r.tr]))+""; 
+  const d=r.tr-(parseInt(r.last.split("×")[1])||0);head=r.state==="building_reps"?"+"+d+" REPETIÇÃO":head;desc=r.state==="building_reps"?"Você está a uma repetição de superar sua última marca.":r.why;
+  pct=Math.min(100,Math.round((parseInt(r.last.split("×")[1])/r.tr)*100))}
+ const mon=discover();
+ return`<div class="card"><div class="row"><span class="cap">Seu treino · ${wd}</span>${sync()}</div>
+ <div class="cap" style="text-align:center;margin-top:22px">Seu desafio de hoje</div>
+ <h1>${E.n}</h1><div class="big">${tgt}</div><p class="sub">${lastTxt}</p>
+ <div class="box"><b>${head}</b><span>${desc}</span></div>
+ ${r.src?`<p class="note">Base: ${r.src}. Sucesso: atingir a meta nas séries válidas (aquecimento não conta).</p>`:""}
+ <div class="row cap"><span>Progresso da missão</span><span style="color:var(--gr)">${done?100:pct}%</span></div>
+ <div class="bar" style="margin-top:8px"><i style="width:${done?100:pct}%"></i></div>
+ ${done?`<button class="cta" disabled style="opacity:.6">Missão concluída</button>`:acc?`<button class="cta" data-go="train">Ir para o treino</button>`:r.state==="paused"?"":`<button class="cta" data-act="accept">Aceitar desafio</button>`}
+ ${done?"":`<button class="ghost" data-act="skip">Adiar por hoje</button>`}</div>
+ ${mon}
+ <!--P--><div class="card"><div class="row"><h2 style="margin:0">Seu perfil</h2><span class="pill">Nível ${String(lv).padStart(2,"0")}</span></div>
+ <div class="xp"><div class="ic">🏆</div><div><b>${xp} XP</b><div class="note">${nxt} XP para o próximo nível</div></div></div>
+ <div class="bar"><i style="background:var(--gr2);width:${(xp%LEVEL_XP)/LEVEL_XP*100}%"></i></div>
+ <h2 style="margin-top:22px">Conquistas</h2><div class="tiles">
+ <div class="tile">🔥<b>${m.days} dias</b><span>Consistência</span></div>
+ <div class="tile">🏋️<b>${m.prs} PRs</b><span>Força</span></div>
+ <div class="tile">🎯<b>${m.miss}</b><span>Missões</span></div></div>
+ <p class="note" style="margin-top:12px">${m.wk} treino(s) nos últimos 7 dias. Descanso também faz parte da evolução.</p></div>`}
+function discover(){
+ const freq=S.sets.filter(s=>["supino","inclinado","puxada"].includes(s.ex)).length;
+ if(S.found.barra==="declined"||freq<3)return"";
+ const open=pick!==null;
+ return`<div class="card"><div class="row"><span class="pill">Descoberta rara</span><span style="color:var(--gr);font-size:22px">✦</span></div>
+ <div class="hero" style="margin-top:14px">🧗<em>${EX.barra.eq}</em></div>
+ <h1 style="text-align:left;font-size:30px">Novo monstro encontrado</h1>
+ <div class="big" style="font-size:34px">BARRA FIXA</div><p class="sub">Hoje você pode testar uma nova habilidade.</p>
+ <div class="box"><b>Escolha sua versão</b><span>Desafio de descoberta · Costas e bíceps. Você ainda não tem histórico de barra fixa, então comece pela versão que fizer sentido; priorize a técnica.</span></div>
+ <div class="opts">${["Barra assistida (elástico ou máquina)","Negativas controladas (3 a 5)","Puxada alta (alternativa)","Só familiarização técnica"].map((o,i)=>`<button class="opt ${pick===i?"on":""}" data-pick="${i}">${o}</button>`).join("")}</div>
+ <button class="cta" data-act="monster" ${open?"":"disabled style='opacity:.5'"}>Enfrentar monstro</button>
+ <button class="ghost" data-act="decline">Não quero agora</button></div>`}
+function train(){
+ if(!curPlan().length)return restTrain();
+ const w=new Date().toLocaleDateString("pt-BR",{weekday:"long"});
+ return`<div class="card"><div class="row"><span class="cap">${curDay()?PLANS[curDay()].t:"Descoberta"}</span>${sync()}</div>${chips()}
+ <p class="note">Cada exercício indica se a carga é total ou por halter. Valores sugeridos são apenas sugestão: confirme ou edite.</p></div>`+
+ curPlan().map(([k,ns,lo,hi,lt])=>{const E=EX[k],r=recommend(k,[lo,hi],ns),td=S.sets.filter(s=>s.ex===k&&s.day===TODAY);
+  const sug=r.nw?`${r.nw} kg × ${r.tr}`:r.state==="paused"?"Pausado":"Sem histórico: comece leve";
+  return`<div class="card"><div class="row"><div><h2 style="margin:0">${E.n}</h2><div class="note">${E.m} · ${E.eq} · ${ns} × ${lo}–${hi}${lt?" · estímulo leve":""} · ${td.filter(s=>!s.warm).length}/${ns} feitas</div></div>
+  <label style="white-space:nowrap"><input type="checkbox" data-pain="${k}" ${S.pain[k]?"checked":""} style="width:auto;min-height:0"> Dor</label></div>
+  <p class="note">Sugestão: <b style="color:var(--gr)">${sug}</b>${r.last?" · última: "+r.last:""}</p>
+  <div class="sets">${td.map((s,i)=>`Série ${i+1}: ${s.w} kg × ${s.r}${s.rpe?" · RPE "+s.rpe:""}${s.warm?" · aquec.":""} <button data-edit="${s.id}" style="background:none;border:0;color:var(--mu);min-height:32px">✎</button><button data-del="${s.id}" style="background:none;border:0;color:var(--mu);min-height:32px">✕</button>`).join("<br>")||""}</div>
+  <div class="g3"><div><label>Carga (kg, ${E.u})</label><input inputmode="decimal" id="w-${k}" value="${r.nw||r.w||""}"></div>
+  <div><label>Reps</label><input inputmode="numeric" id="r-${k}"></div>
+  <div><label>RPE (opc.)</label><select id="p-${k}"><option value="">–</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div></div>
+  <label><input type="checkbox" id="a-${k}" style="width:auto;min-height:0"> Aquecimento</label>
+  <button class="cta" style="min-height:52px;font-size:17px" data-save="${k}">Concluir série</button></div>`}).join("")+
+ (S.fin[TODAY]?`<div class="card"><b>Sessão concluída</b><p class="note">Bom trabalho: ${S.sets.filter(s=>s.day===TODAY&&!s.warm).length} séries efetivas · XP do dia: +${S.xp.filter(x=>x.at&&day(new Date(x.at))===TODAY).reduce((a,x)=>a+x.amt,0)}. Descanso também faz parte da evolução.</p></div>`:
+ `<button class="cta" data-act="finish">Concluir treino</button>`)}
+function evo(){
+ const m=metrics(),rows=Object.keys(m.best).map(k=>`<div class="hist"><span>${EX[k]?.n||k}</span><span style="color:var(--gr)">e1RM estimado ≈ ${m.best[k].toFixed(1)} kg</span></div>`).join("");
+ const vol={};S.sets.filter(s=>!s.warm).forEach(s=>{vol[s.day]=(vol[s.day]||0)+s.w*s.r});
+ const days=Object.keys(vol).sort().slice(-7),mx=Math.max(1,...days.map(d=>vol[d]));
+ return`<div class="card"><h2>Evolução</h2>${days.length?`<div class="cap">Volume por sessão (carga × reps)</div><div style="display:flex;gap:6px;align-items:flex-end;height:110px;margin:10px 0">${days.map(d=>`<div style="flex:1;text-align:center"><div style="background:var(--gr);border-radius:8px 8px 0 0;height:${vol[d]/mx*90}px"></div><div class="note">${d.slice(8)}/${d.slice(5,7)}</div></div>`).join("")}</div><p class="note">Volume não representa sozinho o estímulo muscular e não é comparável entre exercícios.</p>`:`<p class="note">Registre séries para ver sua evolução.</p>`}</div>
+ <div class="card"><h2>Recordes (estimativa)</h2>${rows||`<p class="note">Sem recordes ainda. Estimativas de 1RM são orientativas, não força real.</p>`}</div>`}
+function best(){
+ const names=Object.keys(EX);
+ return`<div class="card"><h2>Bestiário</h2>${names.map(k=>{const tried=S.sets.some(s=>s.ex===k);const ss=sessions(k),n=new Set(S.sets.filter(s=>s.ex===k&&!s.warm).map(s=>s.day)).size,ok=ss.slice(0,3).every(x=>x.sets.every(s=>s.r>=EX[k].rg[0]));const st=n>=5&&ss.length>=3&&ok?"Dominado":n>=2?"Em desenvolvimento":n>=1?"Desbloqueado":["found","accepted"].includes(S.found[k])?"Encontrado":"Desconhecido";
+ return`<div class="hist"><span>${EX[k].n}<div class="note">${EX[k].m}</div></span><span class="pill" style="${st==="Desconhecido"?"background:#222;color:#888":""}">${st}</span></div>`}).join("")}
+ <p class="note" style="margin-top:10px">Dominado = 5+ dias de registro e, nas 3 últimas sessões, todas as séries dentro da faixa (consistência, não carga alta). Ver um exercício não conta como experimentar: é preciso registrar.</p></div>`}
+function prof(){
+ return`<div class="card"><h2>Perfil e dados</h2><p class="note">Seus dados ficam neste aparelho. Exportar gera um backup.</p>
+ <button class="cta" style="min-height:50px;font-size:16px" data-act="export">Baixar backup JSON</button>
+ <button class="ghost" data-act="import">Restaurar backup JSON</button>
+ <button class="ghost" data-act="demo">${S.demo?"Remover":"Carregar"} dados de demonstração</button>
+ <p class="note" style="margin-top:10px">Demonstração (supino 20 kg: 5, 5, 6) é fictícia e fica marcada; nunca misturada ao histórico real.</p></div>
+ <div class="card"><h2>Histórico de XP</h2>${S.xp.slice(-8).reverse().map(x=>`<div class="hist"><span>${x.why}</span><span style="color:var(--gr)">+${x.amt}</span></div>`).join("")||`<p class="note">Sem eventos ainda. XP nunca é removido.</p>`}</div>`}
+// ---------- Motor de desafios (ordem: segurança > descanso > retomada > progressão > consolidação > registro) ----------
+const GAP=14;
+const TYPE={progression:"Missão de progressão",consolidate:"Missão de consolidação",return:"Missão de retomada",record:"Missão de registro",safety:"Segurança primeiro"};
+function gapDays(){const d=S.sets.filter(s=>s.day<TODAY).map(s=>s.day).sort().pop();return d?Math.floor((new Date(TODAY)-new Date(d))/864e5):null}
+function mission(){
+ const d=DOW[new Date().getDay()];if(!d)return{type:"rest"};
+ const rec=PLANS[d].l.map(([ex,ns,lo,hi])=>({ex,r:recommend(ex,[lo,hi],ns)})),pr=s=>rec.find(x=>x.r.state===s);
+ const m=pr("ready_for_load")||pr("building_reps")||pr("consolidate")||pr("insufficient_data");
+ if(!m)return{type:"safety",...rec[0]};
+ const g=gapDays();if(g!==null&&g>=GAP)return{type:"return",g,...m};
+ const s=m.r.state;return{type:s==="insufficient_data"?"record":s==="consolidate"?"consolidate":"progression",...m}}
+function todayChallenge(){const m=mission();if(m.type==="rest")return{rest:true,r:{}};return{ex:m.ex,rest:false,r:{...m.r,nw:m.r.nw??m.r.w,state:m.type==="return"?"insufficient_data":m.r.state}}}
+function weekDone(){const d=new Date(),w=(d.getDay()+6)%7,ws=day(new Date(d.getFullYear(),d.getMonth(),d.getDate()-w));return new Set(S.sets.filter(s=>!s.warm&&s.day>=ws).map(s=>s.day)).size}
+function profCard(){const m=metrics(),xp=xpTotal(),lv=Math.floor(xp/LEVEL_XP)+1,nxt=lv*LEVEL_XP-xp;
+ return`<div class="card"><div class="row"><h2 style="margin:0">Seu perfil</h2><span class="pill">Nível ${String(lv).padStart(2,"0")}</span></div>
+ <div class="xp"><div class="ic">🏆</div><div><b>${xp} XP</b><div class="note">${nxt} XP para o próximo nível</div></div></div>
+ <div class="bar"><i style="background:var(--gr2);width:${(xp%LEVEL_XP)/LEVEL_XP*100}%"></i></div>
+ <h2 style="margin-top:22px">Conquistas</h2><div class="tiles">
+ <div class="tile">🔥<b>${weekDone()}/4</b><span>Semana</span></div>
+ <div class="tile">🏋️<b>${m.prs} PRs</b><span>Força</span></div>
+ <div class="tile">🎯<b>${m.miss}</b><span>Missões</span></div></div>
+ <p class="note" style="margin-top:12px">Consistência segue o seu plano (4 treinos por semana). Dias de descanso e pausas não removem XP nem conquistas.</p></div>`}
+function discover2(){
+ const f=S.found.barra,P=["puxada","puxada_ab","puxada_n","puxada_un"],pulls=S.sets.filter(s=>P.includes(s.ex)).length;
+ if(pulls<3||["declined","accepted","unlocked"].includes(f))return"";
+ return`<div class="card"><div class="row"><span class="pill">Descoberta rara</span><span style="color:var(--gr);font-size:22px">✦</span></div>
+ <div class="hero" style="margin-top:14px">🧗<em>${EX.barra.eq}</em></div>
+ <h1 style="text-align:left;font-size:30px">Novo monstro encontrado</h1>
+ <div class="big" style="font-size:34px">BARRA FIXA</div><p class="sub">Missão secundária, totalmente opcional.</p>
+ <div class="box"><b>Por que apareceu</b><span>Você já registrou ${pulls} séries de puxada. A barra fixa é <b style="display:inline;font-size:inherit">similar</b> à puxada alta no padrão de puxada vertical, mas não equivalente: usa o peso do corpo e exige mais controle. Costas e bíceps. Priorize a técnica.</span></div>
+ <div class="opts">${["Barra assistida (elástico ou máquina)","Negativas controladas (3 a 5)","Puxada alta (alternativa)","Só familiarização técnica"].map((o,i)=>`<button class="opt ${pick===i?"on":""}" data-pick="${i}">${o}</button>`).join("")}</div>
+ <button class="cta" data-act="monster" ${pick!==null?"":"disabled style='opacity:.5'"}>Experimentar</button>
+ <button class="ghost" data-act="later">Salvar para depois</button><button class="ghost" data-act="decline">Não quero agora</button></div>`}
+function home(){
+ const M=mission();if(M.type==="rest")return"<!--P-->"+profCard();
+ const {ex,r,type}=M,E=EX[ex],st=S.ch[TODAY]||"",n=sessions(ex).length,rpe=S.sets.some(s=>s.ex===ex&&s.rpe);
+ let ci=n>=3?2:n>=2?1:0;if(!rpe&&ci>0)ci--;const cf=["baixa","média","alta"][ci];
+ const lm=r.last?parseInt(r.last.split("×")[1]):0,tw=r.nw??r.w,wd=new Date().toLocaleDateString("pt-BR",{weekday:"long"}).toUpperCase();
+ let tgt="Primeira marca",head="REGISTRO",desc=r.why,pct=0;
+ const last=r.last?"Sua última marca: "+r.last:"Sem histórico ainda";
+ if(type==="safety"){tgt="Sem meta de carga";head="SEGURANÇA PRIMEIRO"}
+ else if(type==="return"){tgt="Treino planejado";head="RETOMADA GRADUAL";desc=`Já faz ${M.g} dias desde o último treino. Retome sem pressa, com carga confortável, e registre o desempenho. Sem compensar os dias parados.`}
+ else if(type!=="record"){tgt=`${tw} kg × ${r.tr}`;head=r.state==="ready_for_load"?`+${r.nw-r.w} KG`:r.state==="building_reps"?(r.tr>lm?`+${r.tr-lm} REPETIÇÃO`:"COMPLETAR AS SÉRIES"):"CONSOLIDAR";pct=r.state==="ready_for_load"?0:Math.round(lm/r.tr*100)}
+ const td=S.sets.filter(s=>s.ex===ex&&s.day===TODAY&&!s.warm&&s.w>=(tw||0));if(td.length&&r.tr)pct=Math.max(pct,Math.min(100,Math.round(Math.max(...td.map(s=>s.r))/r.tr*100)));
+ if(st==="done")pct=100;
+ const A=st==="done"?`<button class="cta" disabled style="opacity:.6">Missão concluída</button>`
+ :st==="accepted"?`<button class="cta" data-go="train">Ir para o treino</button>`
+ :st==="refused"?`<p class="note">Você recusou o desafio de hoje. Sem penalidade: o treino segue normal.</p><button class="cta" data-go="train">Ir para o treino</button>`
+ :`${type==="safety"?`<button class="cta" data-go="train">Ver treino</button>`:`<button class="cta" data-act="accept">Aceitar desafio</button>`}${st==="postponed"?`<p class="note">Adiado: aceite quando quiser.</p>`:`<button class="ghost" data-act="postpone">Adiar</button>`}<button class="ghost" data-act="refuse">Recusar hoje</button>`;
+ return`<div class="card"><div class="row"><span class="cap">Seu treino · ${wd}</span>${sync()}</div>
+ <div class="cap" style="text-align:center;margin-top:22px">Seu desafio de hoje</div>
+ <h1>${E.n}</h1><div class="big">${tgt}</div><p class="sub">${last}</p>
+ <div class="note" style="text-align:center;margin-bottom:6px">${TYPE[type]}</div>
+ <div class="box"><b>${head}</b><span>${desc}</span></div>
+ <p class="note">${r.src?`Base: ${r.src}. `:""}Sucesso: atingir a meta nas séries efetivas (aquecimento não conta). Confiança: ${cf} (${n} sessão(ões) anteriores${rpe?"":", sem RPE informado"}). Recompensa prevista: +40 XP.</p>
+ <div class="row cap"><span>Progresso da missão</span><span style="color:var(--gr)">${pct}%</span></div>
+ <div class="bar" style="margin-top:8px"><i style="width:${pct}%"></i></div>${A}</div>
+ ${discover2()}<!--P-->${profCard()}`}
+const NAV=[["home","🏠","Início"],["train","🏋️","Treino"],["evo","📈","Evolução"],["best","👾","Bestiário"],["prof","👤","Perfil"]];
+function render(){
+ let h={home,train,evo,best,prof}[tab]();if(tab==="home"&&!DOW[new Date().getDay()]){const i=h.indexOf("<!--P-->");h=restCard()+(i<0?"":h.slice(i))}
+ document.getElementById("app").innerHTML=h;
+ document.getElementById("nav").innerHTML=NAV.map(([k,e,l])=>`<button class="${tab===k?"on":""}" data-go="${k}" aria-label="${l}"><span class="e">${e}</span>${l}</button>`).join("")}
+// ---------- Eventos ----------
+document.addEventListener("click",ev=>{
+ const t=ev.target.closest("button,input");if(!t)return;
+ if(t.dataset.go){tab=t.dataset.go;render();scrollTo(0,0);return}
+ if(t.dataset.day){selDay=t.dataset.day;render();return}
+ if(t.dataset.pick!==undefined){pick=+t.dataset.pick;render();return}
+ if(t.dataset.edit){const s=S.sets.find(x=>x.id===t.dataset.edit);if(s){editId=s.id;render();const g=i=>document.getElementById(i+"-"+s.ex);if(g("w")){g("w").value=s.w;g("r").value=s.r;g("p").value=s.rpe||"";g("a").checked=s.warm;g("r").focus();toast("Editando série: ajuste e toque em Concluir")}}return}
+ if(t.dataset.del){S.sets=S.sets.filter(s=>s.id!==t.dataset.del);S.xp=S.xp.filter(x=>{const p=x.id.split(":");if(p[0]==="start")return S.sets.some(s=>s.day===p[1]);if(p[0]==="ex")return S.sets.some(s=>s.day===p[1]&&s.ex===p[2]);return true});save();render();return}
+ if(t.dataset.pain!==undefined){S.pain[t.dataset.pain]=t.checked;save();render();return}
+ if(t.dataset.save){const k=t.dataset.save,w=parseFloat(String(document.getElementById("w-"+k).value).replace(",",".")),r=parseInt(document.getElementById("r-"+k).value,10),p=document.getElementById("p-"+k).value;
+  if(!(w>=0)||!(r>0)){toast("Informe carga (≥0) e reps (>0)");return}
+  const ed=editId&&S.sets.find(x=>x.id===editId&&x.ex===k);if(ed){Object.assign(ed,{w,r,rpe:p?+p:null,warm:document.getElementById("a-"+k).checked});editId=null}else S.sets.push({id:uid(),ex:k,w,r,rpe:p?+p:null,warm:document.getElementById("a-"+k).checked,day:TODAY,ts:Date.now()});
+  award("start:"+TODAY,20,"Sessão iniciada");award("ex:"+TODAY+":"+k,10,"Registro: "+EX[k].n);
+  const c=todayChallenge();if(S.ch[TODAY]==="accepted"&&c.ex===k&&(c.r.state==="insufficient_data"||c.r.tr&&r>=c.r.tr&&w>=(c.r.nw||0))&&!document.getElementById("a-"+k).checked){S.ch[TODAY]="done";award("ch:"+TODAY,40,"Missão concluída");toast("Missão concluída!")}else toast("Série salva");
+  if(k==="barra"&&S.found.barra!=="unlocked"){S.found.barra="unlocked";award("disc:barra",30,"Descoberta: Barra fixa")}save();render();return}
+ const a=t.dataset.act;if(!a)return;
+ if(a==="accept"){S.ch[TODAY]="accepted";save();toast("Desafio aceito");render()}
+ if(a==="postpone"){S.ch[TODAY]="postponed";save();toast("Adiado, sem problema");render()}
+ if(a==="refuse"){S.ch[TODAY]="refused";save();toast("Tudo bem");render()}
+ if(a==="later"){S.found.barra="found";save();toast("Salvo no Bestiário");render()}
+ if(a==="monster"){S.found.barra="accepted";save();toast("Registre a primeira série para desbloquear");tab="train";render()}
+ if(a==="decline"){S.found.barra="declined";save();render()}
+ if(a==="finish"){if(!S.sets.some(s=>s.day===TODAY)){toast("Registre ao menos uma série");return}S.fin[TODAY]=true;award("done:"+TODAY,50,"Sessão concluída");save();toast("Treino concluído");render()}
+ if(a==="demo"){if(S.demo){S.sets=S.sets.filter(s=>!s.demo);S.xp=S.xp.filter(x=>!x.demo);S.demo=false}else{
+  const y=day(new Date(Date.now()-864e5*3));[5,5,6].forEach(r=>S.sets.push({id:uid(),ex:"supino",w:20,r,rpe:null,warm:false,day:y,ts:Date.now()-864e5*3,demo:true}));S.demo=true}save();render()}
+ if(a==="import"){const i=document.createElement("input");i.type="file";i.accept="application/json,.json";i.onchange=async()=>{try{const d=JSON.parse(await i.files[0].text());if(!Array.isArray(d.sets)||!Array.isArray(d.xp))throw 0;if(!confirm("Substituir os dados deste aparelho pelo backup?"))return;S=Object.assign({sets:[],xp:[],ch:{},found:{},pain:{},demo:false,fin:{}},d);save();render();toast("Backup restaurado")}catch(e){toast("Arquivo inválido")}};i.click()}
+ if(a==="export"){const b=new Blob([JSON.stringify(S,null,2)],{type:"application/json"}),u=URL.createObjectURL(b),l=document.createElement("a");l.href=u;l.download="gymquest-backup.json";l.click();URL.revokeObjectURL(u)}
+});
+addEventListener("online",render);addEventListener("offline",render);
+render();
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));
+</script>
+</body>
+</html>
