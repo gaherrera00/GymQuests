@@ -1,19 +1,31 @@
+
 name: Build APK
+
 on:
   push:
     branches: [main, master]
   workflow_dispatch:
+
 jobs:
   apk:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-      - uses: actions/setup-java@v4
-        with: { distribution: temurin, java-version: 17 }
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 17
+
       - run: npm install
+
       - run: npx cap add android
+
       - name: Icone do app
         run: |
           R=android/app/src/main/res
@@ -23,11 +35,14 @@ jobs:
             cp www/icon-512.png $d/ic_launcher_round.png
             cp www/icon-512.png $d/ic_launcher_foreground.png
           done
+
       - run: npx cap sync android
+
       - name: Compilar
         working-directory: android
         run: chmod +x gradlew && ./gradlew assembleDebug
-      - uses: actions/upload-artifact@v4
+
+      - uses: actions/upload-artifact@v7
         with:
           name: GymQuest-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
