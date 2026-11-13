@@ -1,3 +1,16 @@
-{"name":"gymquest","version":"1.0.0","private":true,
- "dependencies":{"@capacitor/android":"^6.2.0","@capacitor/core":"^6.2.0"},
- "devDependencies":{"@capacitor/cli":"^6.2.0"}}
+{
+ "name": "gymquest",
+ "version": "1.0.0",
+ "private": true,
+ "dependencies": {
+  "@capacitor/android": "^6.2.0",
+  "@capacitor/core": "^6.2.0"
+ },
+ "devDependencies": {
+  "@capacitor/cli": "^6.2.0",
+  "jsdom": "^24.0.0"
+ },
+ "scripts": {
+  "test": "node --test tests/discovery.test.js"
+ }
+}

@@ -95,7 +95,7 @@ const PLANS={
 };
 const DOW={1:"seg",2:"ter",4:"qui",5:"sex"};let selDay=null,editId=null;
 const curDay=()=>selDay||DOW[new Date().getDay()]||null;
-const curPlan=()=>(curDay()?PLANS[curDay()].l:[]).concat(S.found.barra==="accepted"||S.found.barra==="unlocked"?[["barra",2,1,5,1]]:[]);
+const curPlan=()=>(curDay()?PLANS[curDay()].l:[]).concat(extras());
 const chips=()=>Object.keys(PLANS).map(k=>`<button class="opt ${curDay()===k?"on":""}" style="min-height:40px;width:auto;display:inline-block;margin:6px 6px 0 0;padding:6px 12px" data-day="${k}">${PLANS[k].s}</button>`).join("");
 function nextDay(){for(let i=1;i<=7;i++){const d=DOW[(new Date().getDay()+i)%7];if(d)return PLANS[d].t}return""}
 function restCard(){const wd=new Date().toLocaleDateString("pt-BR",{weekday:"long"}).toUpperCase();return`<div class="card"><div class="row"><span class="cap">Hoje · ${wd}</span>${sync()}</div><h1>Dia de recuperação</h1><p class="sub">Descanso também faz parte da evolução.</p><div class="box"><b>Missão leve</b><span>Mobilidade leve ou uma caminhada, se quiser. Sem meta de carga. Próximo treino: ${nextDay()}.</span></div><button class="cta" data-go="train">Ver treinos</button></div>`}
@@ -105,6 +105,7 @@ const KEY="gymquest.v1";
 // ---------- Estado ----------
 let S={sets:[],xp:[],ch:{},found:{},pain:{},demo:false,fin:{}};
 try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
+S.disc=S.disc||{};if(S.found&&S.found.barra&&!S.disc.barra)S.disc.barra={id:"legacy",from:"puxada",tipo:"similar",hist:[],at:Date.now(),state:{accepted:"accepted",unlocked:"unlocked",declined:"declined"}[S.found.barra]||"later"};
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const day=(d=new Date())=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 const TODAY=day();
@@ -210,7 +211,7 @@ function evo(){
  <div class="card"><h2>Recordes (estimativa)</h2>${rows||`<p class="note">Sem recordes ainda. Estimativas de 1RM são orientativas, não força real.</p>`}</div>`}
 function best(){
  const names=Object.keys(EX);
- return`<div class="card"><h2>Bestiário</h2>${names.map(k=>{const tried=S.sets.some(s=>s.ex===k);const ss=sessions(k),n=new Set(S.sets.filter(s=>s.ex===k&&!s.warm).map(s=>s.day)).size,ok=ss.slice(0,3).every(x=>x.sets.every(s=>s.r>=EX[k].rg[0]));const st=n>=5&&ss.length>=3&&ok?"Dominado":n>=2?"Em desenvolvimento":n>=1?"Desbloqueado":["found","accepted"].includes(S.found[k])?"Encontrado":"Desconhecido";
+ return`<div class="card"><h2>Bestiário</h2>${names.map(k=>{const tried=S.sets.some(s=>s.ex===k);const ss=sessions(k),n=new Set(S.sets.filter(s=>s.ex===k&&!s.warm).map(s=>s.day)).size,ok=ss.slice(0,3).every(x=>x.sets.every(s=>s.r>=EX[k].rg[0]));const st=n>=5&&ss.length>=3&&ok?"Dominado":n>=2?"Em desenvolvimento":n>=1?"Desbloqueado":D()[k]&&["later","accepted"].includes(D()[k].state)?"Encontrado":"Desconhecido";
  return`<div class="hist"><span>${EX[k].n}<div class="note">${EX[k].m}</div></span><span class="pill" style="${st==="Desconhecido"?"background:#222;color:#888":""}">${st}</span></div>`}).join("")}
  <p class="note" style="margin-top:10px">Dominado = 5+ dias de registro e, nas 3 últimas sessões, todas as séries dentro da faixa (consistência, não carga alta). Ver um exercício não conta como experimentar: é preciso registrar.</p></div>`}
 function prof(){
@@ -242,7 +243,7 @@ function profCard(){const m=metrics(),xp=xpTotal(),lv=Math.floor(xp/LEVEL_XP)+1,
  <div class="tile">🏋️<b>${m.prs} PRs</b><span>Força</span></div>
  <div class="tile">🎯<b>${m.miss}</b><span>Missões</span></div></div>
  <p class="note" style="margin-top:12px">Consistência segue o seu plano (4 treinos por semana). Dias de descanso e pausas não removem XP nem conquistas.</p></div>`}
-function discover2(){
+function discover2Old(){
  const f=S.found.barra,P=["puxada","puxada_ab","puxada_n","puxada_un"],pulls=S.sets.filter(s=>P.includes(s.ex)).length;
  if(pulls<3||["declined","accepted","unlocked"].includes(f))return"";
  return`<div class="card"><div class="row"><span class="pill">Descoberta rara</span><span style="color:var(--gr);font-size:22px">✦</span></div>
@@ -278,6 +279,32 @@ function home(){
  <div class="row cap"><span>Progresso da missão</span><span style="color:var(--gr)">${pct}%</span></div>
  <div class="bar" style="margin-top:8px"><i style="width:${pct}%"></i></div>${A}</div>
  ${discover2()}<!--P-->${profCard()}`}
+// ---------- Catálogo: grupos, padrões e relações (dados; o motor só consulta) ----------
+const M={supino:["peito","empurrar horizontal"],puxada_ab:["costas","puxada vertical"],inclinado:["peito","empurrar inclinado"],remada_ap:["costas","remada"],paralela:["peito","empurrar vertical"],lateral:["ombros","abdução"],triceps:["tríceps","extensão de cotovelo"],rosca:["bíceps","flexão de cotovelo"],puxada:["costas","puxada vertical"],remada_c:["costas","remada"],puxada_un:["costas","puxada vertical"],remada_b:["costas","remada"],voador:["ombros","abdução horizontal"],rosca_inc:["bíceps","flexão de cotovelo"],scott:["bíceps","flexão de cotovelo"],agach:["quadríceps","agachamento"],legpress:["quadríceps","empurrar pernas"],flexora:["posterior","flexão de joelho"],pantu:["panturrilha","flexão plantar"],desenv:["ombros","empurrar vertical"],puxada_n:["costas","puxada vertical"],remada_un:["costas","remada"],pulldown:["costas","puxada vertical"],inclinado_b:["peito","empurrar inclinado"],frances:["tríceps","extensão de cotovelo"],lateral_cabo:["ombros","abdução"],barra:["costas","puxada vertical"]};
+[["sup_halt","Supino reto com halteres","peito","empurrar horizontal","Halteres",2,[8,12],H],["inclinado_maq","Supino inclinado na máquina","peito","empurrar inclinado","Máquina",2.5,[8,12]],["puxada_sup","Puxada supinada","costas","puxada vertical","Polia",2.5,[8,12]],["pullover_cabo","Pullover no cabo","costas","puxada vertical","Polia",2.5,[10,15]],["cavalinho","Remada cavalinho","costas","remada","Máquina/barra",2.5,[8,12]],["remada_banco","Remada apoiada no banco","costas","remada","Halter",2,[8,12],H],["remada_b_pron","Remada baixa pronada","costas","remada","Polia",2.5,[8,12]],["lateral_un","Elevação lateral unilateral","ombros","abdução","Halter",1,[12,20],H],["face_pull","Face pull","ombros","abdução horizontal","Polia",2.5,[12,20]],["desenv_barra","Desenvolvimento com barra","ombros","empurrar vertical","Barra",2,[6,10]],["rosca_halt","Rosca direta com halteres","bíceps","flexão de cotovelo","Halteres",1,[8,12],H],["bayesian","Rosca Bayesian no cabo","bíceps","flexão de cotovelo","Polia",2.5,[10,15]],["scott_un","Rosca Scott unilateral","bíceps","flexão de cotovelo","Halter/máquina",1,[10,15]],["triceps_corda","Tríceps corda","tríceps","extensão de cotovelo","Polia",2.5,[10,15]],["ext_un_cabo","Extensão unilateral no cabo","tríceps","extensão de cotovelo","Polia",2.5,[10,15]],["frances_un","Tríceps francês unilateral","tríceps","extensão de cotovelo","Halter",1,[8,12],H],["agach_front","Agachamento frontal","quadríceps","agachamento","Barra",5,[6,10]],["bulgaro","Agachamento búlgaro","quadríceps","agachamento unilateral","Halteres",2,[8,12],H],["hack","Agachamento hack","quadríceps","agachamento","Máquina",5,[8,12]],["flexora_un","Flexora unilateral","posterior","flexão de joelho","Máquina",2.5,[10,15]],["pantu_sent","Panturrilha sentado","panturrilha","flexão plantar","Máquina",5,[10,15]]].forEach(([k,n,g,pt,eq,st,rg,u])=>{EX[k]=X(n,g[0].toUpperCase()+g.slice(1),eq,st,rg,u);M[k]=[g,pt]});
+// [de, para, tipo (variação|similar|complementar), justificativa]; a ordem define a prioridade
+const REL=[["supino","sup_halt","variação","Mantém o empurrar horizontal; os halteres pedem mais estabilização e permitem trajetória livre."],["inclinado_b","inclinado","variação","Mesmo empurrar inclinado, agora com halteres e maior amplitude."],["inclinado_b","inclinado_maq","variação","Mesmo padrão, em máquina com trajetória guiada."],["puxada","barra","similar","Ambas são puxada vertical, mas a barra fixa usa o peso do corpo e exige mais controle."],["puxada","puxada_sup","variação","Mesma puxada vertical com pegada supinada, que envolve mais o bíceps."],["puxada_ab","puxada_n","variação","Mesma puxada vertical com pegada neutra, geralmente mais confortável para os ombros."],["pulldown","pullover_cabo","similar","Ambos são para costas com braços estendidos; o pullover muda a trajetória."],["remada_b","remada_un","variação","Mesma remada, agora unilateral e com mais amplitude."],["remada_b","remada_b_pron","variação","Mesma remada baixa com pegada pronada, que muda a ênfase."],["remada_c","cavalinho","variação","Remada com tronco inclinado e apoio fixo, trajetória mais estável."],["remada_un","remada_banco","variação","Remada unilateral com apoio no banco, reduzindo a exigência do tronco."],["lateral","lateral_cabo","variação","Mesma abdução lateral com tensão constante do cabo."],["lateral","lateral_un","variação","Mesma elevação lateral, unilateral."],["voador","face_pull","similar","Ombro posterior e escápulas, mas o face pull inclui rotação externa e trapézio."],["desenv","desenv_barra","variação","Mesmo empurrar vertical, com barra em vez de halteres."],["rosca","rosca_inc","variação","Mesma flexão de cotovelo com o braço atrás do corpo, alongando mais o bíceps."],["rosca","rosca_halt","variação","Mesma rosca com halteres, permitindo rotação do punho."],["rosca_inc","bayesian","variação","Alongamento do bíceps com tensão constante no cabo."],["scott","scott_un","variação","Mesma rosca Scott, um braço por vez."],["triceps","triceps_corda","variação","Mesma extensão de cotovelo na polia, com corda."],["triceps","ext_un_cabo","variação","Extensão no cabo, um braço por vez."],["frances","frances_un","variação","Mesmo tríceps francês, unilateral."],["agach","agach_front","variação","Mesmo agachamento com a barra à frente, maior exigência de tronco e quadríceps."],["agach","bulgaro","similar","Padrão de agachamento, porém unilateral e com mais exigência de equilíbrio."],["legpress","hack","similar","Ambos são empurrar de pernas em máquina, mas o hack tem outra trajetória."],["flexora","flexora_un","variação","Mesma flexão de joelho, uma perna por vez."],["pantu","pantu_sent","similar","Ambas trabalham a panturrilha; sentado enfatiza o sóleo."]];
+// ---------- Motor de descoberta (sem sorteio; filtros obrigatórios) ----------
+const RECUSA=14;
+const D=()=>S.disc||(S.disc={});
+const painG=()=>[...new Set(Object.keys(S.pain).filter(k=>S.pain[k]&&M[k]).map(k=>M[k][0]))];
+const tried=k=>S.sets.some(s=>s.ex===k&&!s.warm);
+function habitual(){const m={};S.sets.forEach(s=>{if(!s.warm)(m[s.ex]=m[s.ex]||new Set()).add(s.day)});return Object.keys(m).filter(k=>m[k].size>=3)}
+function blockedDisc(t){const d=D()[t];if(!d)return false;if(d.state==="accepted"||d.state==="unlocked")return true;if(d.state==="later")return day(new Date(d.at))===TODAY;if(d.state==="declined")return Date.now()-d.at<RECUSA*864e5;return false}
+function findDiscovery(){
+ const dk=DOW[new Date().getDay()];if(!dk)return null;
+ const L=PLANS[dk].l.map(x=>x[0]),G=[...new Set(L.map(k=>M[k][0]))],hab=habitual(),pg=painG();
+ const c=REL.filter(([f,t])=>hab.includes(f)&&EX[t]&&!tried(t)&&!L.includes(t)&&G.includes(M[t][0])&&!pg.includes(M[t][0])&&!blockedDisc(t));
+ c.sort((a,b)=>L.includes(b[0])-L.includes(a[0]));
+ return c[0]?{f:c[0][0],t:c[0][1],tipo:c[0][2],why:c[0][3],g:M[c[0][1]][0]}:null}
+function extras(){return Object.keys(D()).filter(k=>EX[k]&&(D()[k].state==="accepted"||(D()[k].state==="unlocked"&&D()[k].day===TODAY))).map(k=>[k,2,1,5,1])}
+function discover2(){
+ const c=findDiscovery();if(!c)return"";const E=EX[c.t],F=EX[c.f],a=`data-k="${c.t}" data-f="${c.f}" data-ti="${c.tipo}"`;
+ return`<div class="card"><div class="row"><span class="pill">Descoberta opcional</span><span style="color:var(--gr);font-size:22px">✦</span></div>
+ <h1 style="font-size:clamp(22px,7vw,30px)">${E.n}</h1><p class="sub">Explore um novo movimento · ${c.tipo}</p>
+ <div class="box"><b>Por que apareceu</b><span>Você já treina ${F.n.toLowerCase()} com frequência (3+ sessões) e ainda não registrou ${E.n.toLowerCase()}. ${c.why} Hoje o treino inclui ${c.g}.</span></div>
+ <p class="note">Objetivo: registrar ao menos uma série real. Sem carga ou repetições obrigatórias; comece de forma conservadora. Não altera o seu treino planejado.</p>
+ <button class="cta" data-d="accept" ${a}>Aceitar descoberta</button><button class="ghost" data-d="later" ${a}>Adiar</button><button class="ghost" data-d="decline" ${a}>Recusar</button></div>`}
 const NAV=[["home","🏠","Início"],["train","🏋️","Treino"],["evo","📈","Evolução"],["best","👾","Bestiário"],["prof","👤","Perfil"]];
 function render(){
  let h={home,train,evo,best,prof}[tab]();if(tab==="home"&&!DOW[new Date().getDay()]){const i=h.indexOf("<!--P-->");h=restCard()+(i<0?"":h.slice(i))}
@@ -297,7 +324,8 @@ document.addEventListener("click",ev=>{
   const ed=editId&&S.sets.find(x=>x.id===editId&&x.ex===k);if(ed){Object.assign(ed,{w,r,rpe:p?+p:null,warm:document.getElementById("a-"+k).checked});editId=null}else S.sets.push({id:uid(),ex:k,w,r,rpe:p?+p:null,warm:document.getElementById("a-"+k).checked,day:TODAY,ts:Date.now()});
   award("start:"+TODAY,20,"Sessão iniciada");award("ex:"+TODAY+":"+k,10,"Registro: "+EX[k].n);
   const c=todayChallenge();if(S.ch[TODAY]==="accepted"&&c.ex===k&&(c.r.state==="insufficient_data"||c.r.tr&&r>=c.r.tr&&w>=(c.r.nw||0))&&!document.getElementById("a-"+k).checked){S.ch[TODAY]="done";award("ch:"+TODAY,40,"Missão concluída");toast("Missão concluída!")}else toast("Série salva");
-  if(k==="barra"&&S.found.barra!=="unlocked"){S.found.barra="unlocked";award("disc:barra",30,"Descoberta: Barra fixa")}save();render();return}
+  {const o=D()[k];if(o&&o.state==="accepted"&&!document.getElementById("a-"+k).checked){o.state="unlocked";o.day=TODAY;o.hist.push(["unlocked",Date.now()]);award("disc:"+k,30,"Descoberta: "+EX[k].n)}}save();render();return}
+ if(t.dataset.d){const k=t.dataset.k,o=D()[k]||(D()[k]={id:uid(),from:t.dataset.f,tipo:t.dataset.ti,hist:[]}),st={accept:"accepted",later:"later",decline:"declined"}[t.dataset.d];o.state=st;o.at=Date.now();o.hist.push([st,o.at]);save();toast(st==="accepted"?"Registre uma série para desbloquear":"Sem problema");if(st==="accepted")tab="train";render();return}
  const a=t.dataset.act;if(!a)return;
  if(a==="accept"){S.ch[TODAY]="accepted";save();toast("Desafio aceito");render()}
  if(a==="postpone"){S.ch[TODAY]="postponed";save();toast("Adiado, sem problema");render()}
