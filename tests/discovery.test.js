@@ -58,3 +58,22 @@ test("L calendário alterado: descobertas seguem o plano, não o dia fixo",()=>{
 test("catálogo: relações válidas e classificadas",()=>{
  const w=W("seg",{});const r=ev(w,"REL.map(x=>[x[0],x[1],x[2],!!EX[x[0]],!!EX[x[1]],!!M[x[1]]])");
  assert.ok(r.length>=25);r.forEach(x=>{assert.ok(["variação","similar","complementar"].includes(x[2]));assert.ok(x[3]&&x[4]&&x[5])});w.close()});
+test("séries: fecha o registro ao atingir o planejado; aquecimento não conta",()=>{
+ const w=W("seg",{});const add=(r,warm)=>{w.document.getElementById("w-supino").value="20";w.document.getElementById("r-supino").value=String(r);w.document.getElementById("a-supino").checked=!!warm;click(w,'[data-save="supino"]')};
+ ev(w,"tab='train';render()");const closed=()=>!!w.document.getElementById("w-supino").closest("[hidden]");
+ add(8,true);add(8);add(7);assert.equal(closed(),false);assert.equal(ev(w,"S.sets.filter(s=>s.ex==='supino').length"),3);
+ add(6);assert.equal(closed(),true);const n=ev(w,"S.sets.length");
+ add(6);assert.equal(ev(w,"S.sets.length"),n);
+ add(10,true);assert.equal(ev(w,"S.sets.length"),n+1);
+ click(w,'[data-del="'+ev(w,"S.sets.filter(s=>!s.warm&&s.ex==='supino')[0].id")+'"]');assert.equal(closed(),false);w.close()});
+test("sem botões de dor/RPE na interface de treino",()=>{
+ const w=W("seg",{});ev(w,"tab='train';render()");const t=w.document.getElementById("app").textContent;
+ assert.doesNotMatch(t,/RPE/);assert.doesNotMatch(t,/Dor/);w.close()});
+test("missão conta automaticamente sem tocar em aceitar",()=>{
+ const w=W("seg",{});ev(w,"tab='train';render()");
+ w.document.getElementById("w-supino").value="20";w.document.getElementById("r-supino").value="8";click(w,'[data-save="supino"]');
+ assert.equal(ev(w,"S.ch[TODAY]"),"done");assert.equal(ev(w,"S.xp.filter(x=>x.id.startsWith('ch:')).length"),1);w.close()});
+test("descoberta conta ao registrar direto, sem aceitar",()=>{
+ const w=W("ter",{sets:sets("puxada",D3)});ev(w,"tab='train';render()");
+ w.document.getElementById("w-barra").value="0";w.document.getElementById("r-barra").value="2";click(w,'[data-save="barra"]');
+ assert.equal(ev(w,"D().barra.state"),"unlocked");assert.equal(ev(w,"S.xp.filter(x=>x.id==='disc:barra').length"),1);w.close()});

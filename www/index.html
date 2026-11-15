@@ -48,7 +48,7 @@ nav div{display:flex;width:100%;max-width:520px}
 nav button{flex:1;min-height:64px;background:none;border:0;color:var(--mu);font-size:12px;display:grid;place-items:center;align-content:center;gap:2px}
 nav button .e{font-size:20px}nav button.on{color:var(--gr)}
 input,select{width:100%;min-height:48px;border-radius:14px;border:1px solid var(--card2);background:#0b120f;color:var(--tx);font:inherit;padding:0 12px}
-.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:10px 0}
+.g3{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
 label{font-size:12px;color:var(--mu)}
 .note{color:var(--mu);font-size:13px;line-height:1.45}
 .sets{margin:8px 0;font-size:14px;color:#d5ded9}
@@ -190,17 +190,17 @@ function train(){
  const w=new Date().toLocaleDateString("pt-BR",{weekday:"long"});
  return`<div class="card"><div class="row"><span class="cap">${curDay()?PLANS[curDay()].t:"Descoberta"}</span>${sync()}</div>${chips()}
  <p class="note">Cada exercício indica se a carga é total ou por halter. Valores sugeridos são apenas sugestão: confirme ou edite.</p></div>`+
- curPlan().map(([k,ns,lo,hi,lt])=>{const E=EX[k],r=recommend(k,[lo,hi],ns),td=S.sets.filter(s=>s.ex===k&&s.day===TODAY);
+ curPlan().map(([k,ns,lo,hi,lt])=>{const E=EX[k],r=recommend(k,[lo,hi],ns),td=S.sets.filter(s=>s.ex===k&&s.day===TODAY),ef=td.filter(s=>!s.warm).length,closed=ef>=ns&&!(editId&&td.some(s=>s.id===editId));
   const sug=r.nw?`${r.nw} kg × ${r.tr}`:r.state==="paused"?"Pausado":"Sem histórico: comece leve";
   return`<div class="card"><div class="row"><div><h2 style="margin:0">${E.n}</h2><div class="note">${E.m} · ${E.eq} · ${ns} × ${lo}–${hi}${lt?" · estímulo leve":""} · ${td.filter(s=>!s.warm).length}/${ns} feitas</div></div>
-  <label style="white-space:nowrap"><input type="checkbox" data-pain="${k}" ${S.pain[k]?"checked":""} style="width:auto;min-height:0"> Dor</label></div>
+  </div>
   <p class="note">Sugestão: <b style="color:var(--gr)">${sug}</b>${r.last?" · última: "+r.last:""}</p>
   <div class="sets">${td.map((s,i)=>`Série ${i+1}: ${s.w} kg × ${s.r}${s.rpe?" · RPE "+s.rpe:""}${s.warm?" · aquec.":""} <button data-edit="${s.id}" style="background:none;border:0;color:var(--mu);min-height:32px">✎</button><button data-del="${s.id}" style="background:none;border:0;color:var(--mu);min-height:32px">✕</button>`).join("<br>")||""}</div>
-  <div class="g3"><div><label>Carga (kg, ${E.u})</label><input inputmode="decimal" id="w-${k}" value="${r.nw||r.w||""}"></div>
+  ${closed?`<div class="box"><b>✓ Exercício concluído</b><span>${ef}/${ns} séries efetivas registradas. Toque em ✎ para corrigir uma série.</span></div>`:""}<div ${closed?"hidden":""}><div class="g3"><div><label>Carga (kg, ${E.u})</label><input inputmode="decimal" id="w-${k}" value="${r.nw||r.w||""}"></div>
   <div><label>Reps</label><input inputmode="numeric" id="r-${k}"></div>
-  <div><label>RPE (opc.)</label><select id="p-${k}"><option value="">–</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div></div>
+  </div>
   <label><input type="checkbox" id="a-${k}" style="width:auto;min-height:0"> Aquecimento</label>
-  <button class="cta" style="min-height:52px;font-size:17px" data-save="${k}">Concluir série</button></div>`}).join("")+
+  <button class="cta" style="min-height:52px;font-size:17px" data-save="${k}">Concluir série</button></div></div>`}).join("")+
  (S.fin[TODAY]?`<div class="card"><b>Sessão concluída</b><p class="note">Bom trabalho: ${S.sets.filter(s=>s.day===TODAY&&!s.warm).length} séries efetivas · XP do dia: +${S.xp.filter(x=>x.at&&day(new Date(x.at))===TODAY).reduce((a,x)=>a+x.amt,0)}. Descanso também faz parte da evolução.</p></div>`:
  `<button class="cta" data-act="finish">Concluir treino</button>`)}
 function evo(){
@@ -257,7 +257,7 @@ function discover2Old(){
 function home(){
  const M=mission();if(M.type==="rest")return"<!--P-->"+profCard();
  const {ex,r,type}=M,E=EX[ex],st=S.ch[TODAY]||"",n=sessions(ex).length,rpe=S.sets.some(s=>s.ex===ex&&s.rpe);
- let ci=n>=3?2:n>=2?1:0;if(!rpe&&ci>0)ci--;const cf=["baixa","média","alta"][ci];
+ let ci=n>=3?2:n>=2?1:0;const cf=["baixa","média","alta"][ci];
  const lm=r.last?parseInt(r.last.split("×")[1]):0,tw=r.nw??r.w,wd=new Date().toLocaleDateString("pt-BR",{weekday:"long"}).toUpperCase();
  let tgt="Primeira marca",head="REGISTRO",desc=r.why,pct=0;
  const last=r.last?"Sua última marca: "+r.last:"Sem histórico ainda";
@@ -275,7 +275,7 @@ function home(){
  <h1>${E.n}</h1><div class="big">${tgt}</div><p class="sub">${last}</p>
  <div class="note" style="text-align:center;margin-bottom:6px">${TYPE[type]}</div>
  <div class="box"><b>${head}</b><span>${desc}</span></div>
- <p class="note">${r.src?`Base: ${r.src}. `:""}Sucesso: atingir a meta nas séries efetivas (aquecimento não conta). Confiança: ${cf} (${n} sessão(ões) anteriores${rpe?"":", sem RPE informado"}). Recompensa prevista: +40 XP.</p>
+ <p class="note">${r.src?`Base: ${r.src}. `:""}Sucesso: atingir a meta nas séries efetivas (aquecimento não conta). Confiança: ${cf} (${n} sessão(ões) anteriores). Recompensa prevista: +40 XP. Conta automaticamente ao registrar o treino, sem precisar aceitar.</p>
  <div class="row cap"><span>Progresso da missão</span><span style="color:var(--gr)">${pct}%</span></div>
  <div class="bar" style="margin-top:8px"><i style="width:${pct}%"></i></div>${A}</div>
  ${discover2()}<!--P-->${profCard()}`}
@@ -297,13 +297,13 @@ function findDiscovery(){
  const c=REL.filter(([f,t])=>hab.includes(f)&&EX[t]&&!tried(t)&&!L.includes(t)&&G.includes(M[t][0])&&!pg.includes(M[t][0])&&!blockedDisc(t));
  c.sort((a,b)=>L.includes(b[0])-L.includes(a[0]));
  return c[0]?{f:c[0][0],t:c[0][1],tipo:c[0][2],why:c[0][3],g:M[c[0][1]][0]}:null}
-function extras(){return Object.keys(D()).filter(k=>EX[k]&&(D()[k].state==="accepted"||(D()[k].state==="unlocked"&&D()[k].day===TODAY))).map(k=>[k,2,1,5,1])}
+function extras(){const l=Object.keys(D()).filter(k=>EX[k]&&(D()[k].state==="accepted"||(D()[k].state==="unlocked"&&D()[k].day===TODAY))).map(k=>[k,2,1,5,1]);const c=findDiscovery();if(c&&!l.some(x=>x[0]===c.t))l.push([c.t,2,1,5,1]);return l}
 function discover2(){
  const c=findDiscovery();if(!c)return"";const E=EX[c.t],F=EX[c.f],a=`data-k="${c.t}" data-f="${c.f}" data-ti="${c.tipo}"`;
  return`<div class="card"><div class="row"><span class="pill">Descoberta opcional</span><span style="color:var(--gr);font-size:22px">✦</span></div>
  <h1 style="font-size:clamp(22px,7vw,30px)">${E.n}</h1><p class="sub">Explore um novo movimento · ${c.tipo}</p>
  <div class="box"><b>Por que apareceu</b><span>Você já treina ${F.n.toLowerCase()} com frequência (3+ sessões) e ainda não registrou ${E.n.toLowerCase()}. ${c.why} Hoje o treino inclui ${c.g}.</span></div>
- <p class="note">Objetivo: registrar ao menos uma série real. Sem carga ou repetições obrigatórias; comece de forma conservadora. Não altera o seu treino planejado.</p>
+ <p class="note">Objetivo: registrar ao menos uma série real (conta mesmo sem tocar em aceitar). Sem carga ou repetições obrigatórias; comece de forma conservadora. Não altera o seu treino planejado.</p>
  <button class="cta" data-d="accept" ${a}>Aceitar descoberta</button><button class="ghost" data-d="later" ${a}>Adiar</button><button class="ghost" data-d="decline" ${a}>Recusar</button></div>`}
 const NAV=[["home","🏠","Início"],["train","🏋️","Treino"],["evo","📈","Evolução"],["best","👾","Bestiário"],["prof","👤","Perfil"]];
 function render(){
@@ -316,15 +316,15 @@ document.addEventListener("click",ev=>{
  if(t.dataset.go){tab=t.dataset.go;render();scrollTo(0,0);return}
  if(t.dataset.day){selDay=t.dataset.day;render();return}
  if(t.dataset.pick!==undefined){pick=+t.dataset.pick;render();return}
- if(t.dataset.edit){const s=S.sets.find(x=>x.id===t.dataset.edit);if(s){editId=s.id;render();const g=i=>document.getElementById(i+"-"+s.ex);if(g("w")){g("w").value=s.w;g("r").value=s.r;g("p").value=s.rpe||"";g("a").checked=s.warm;g("r").focus();toast("Editando série: ajuste e toque em Concluir")}}return}
+ if(t.dataset.edit){const s=S.sets.find(x=>x.id===t.dataset.edit);if(s){editId=s.id;render();const g=i=>document.getElementById(i+"-"+s.ex);if(g("w")){g("w").value=s.w;g("r").value=s.r;g("a").checked=s.warm;g("r").focus();toast("Editando série: ajuste e toque em Concluir")}}return}
  if(t.dataset.del){S.sets=S.sets.filter(s=>s.id!==t.dataset.del);S.xp=S.xp.filter(x=>{const p=x.id.split(":");if(p[0]==="start")return S.sets.some(s=>s.day===p[1]);if(p[0]==="ex")return S.sets.some(s=>s.day===p[1]&&s.ex===p[2]);return true});save();render();return}
  if(t.dataset.pain!==undefined){S.pain[t.dataset.pain]=t.checked;save();render();return}
- if(t.dataset.save){const k=t.dataset.save,w=parseFloat(String(document.getElementById("w-"+k).value).replace(",",".")),r=parseInt(document.getElementById("r-"+k).value,10),p=document.getElementById("p-"+k).value;
+ if(t.dataset.save){const k=t.dataset.save,w=parseFloat(String(document.getElementById("w-"+k).value).replace(",",".")),r=parseInt(document.getElementById("r-"+k).value,10),p="";
   if(!(w>=0)||!(r>0)){toast("Informe carga (≥0) e reps (>0)");return}
-  const ed=editId&&S.sets.find(x=>x.id===editId&&x.ex===k);if(ed){Object.assign(ed,{w,r,rpe:p?+p:null,warm:document.getElementById("a-"+k).checked});editId=null}else S.sets.push({id:uid(),ex:k,w,r,rpe:p?+p:null,warm:document.getElementById("a-"+k).checked,day:TODAY,ts:Date.now()});
+  const ed=editId&&S.sets.find(x=>x.id===editId&&x.ex===k),pe=curPlan().find(x=>x[0]===k);if(!ed&&!document.getElementById("a-"+k).checked&&pe&&S.sets.filter(s=>s.ex===k&&s.day===TODAY&&!s.warm).length>=pe[1]){toast("Séries deste exercício já concluídas");return}if(ed){Object.assign(ed,{w,r,rpe:p?+p:null,warm:document.getElementById("a-"+k).checked});editId=null}else S.sets.push({id:uid(),ex:k,w,r,rpe:p?+p:null,warm:document.getElementById("a-"+k).checked,day:TODAY,ts:Date.now()});
   award("start:"+TODAY,20,"Sessão iniciada");award("ex:"+TODAY+":"+k,10,"Registro: "+EX[k].n);
-  const c=todayChallenge();if(S.ch[TODAY]==="accepted"&&c.ex===k&&(c.r.state==="insufficient_data"||c.r.tr&&r>=c.r.tr&&w>=(c.r.nw||0))&&!document.getElementById("a-"+k).checked){S.ch[TODAY]="done";award("ch:"+TODAY,40,"Missão concluída");toast("Missão concluída!")}else toast("Série salva");
-  {const o=D()[k];if(o&&o.state==="accepted"&&!document.getElementById("a-"+k).checked){o.state="unlocked";o.day=TODAY;o.hist.push(["unlocked",Date.now()]);award("disc:"+k,30,"Descoberta: "+EX[k].n)}}save();render();return}
+  const c=todayChallenge();if(S.ch[TODAY]!=="done"&&c.ex===k&&(c.r.state==="insufficient_data"||c.r.tr&&r>=c.r.tr&&w>=(c.r.nw||0))&&!document.getElementById("a-"+k).checked){S.ch[TODAY]="done";award("ch:"+TODAY,40,"Missão concluída");toast("Missão concluída!")}else toast("Série salva");
+  {const o=D()[k],rl=REL.find(x=>x[1]===k);if((!o||o.state!=="unlocked")&&rl&&!document.getElementById("a-"+k).checked&&S.sets.filter(x=>x.ex===k&&!x.warm).length===1){const q=D()[k]=o||{id:uid(),from:rl[0],tipo:rl[2],hist:[]};q.state="unlocked";q.at=Date.now();q.day=TODAY;q.hist.push(["unlocked",q.at]);award("disc:"+k,30,"Descoberta: "+EX[k].n)}}save();render();return}
  if(t.dataset.d){const k=t.dataset.k,o=D()[k]||(D()[k]={id:uid(),from:t.dataset.f,tipo:t.dataset.ti,hist:[]}),st={accept:"accepted",later:"later",decline:"declined"}[t.dataset.d];o.state=st;o.at=Date.now();o.hist.push([st,o.at]);save();toast(st==="accepted"?"Registre uma série para desbloquear":"Sem problema");if(st==="accepted")tab="train";render();return}
  const a=t.dataset.act;if(!a)return;
  if(a==="accept"){S.ch[TODAY]="accepted";save();toast("Desafio aceito");render()}
