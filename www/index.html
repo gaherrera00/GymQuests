@@ -52,6 +52,8 @@ input,select{width:100%;min-height:48px;border-radius:14px;border:1px solid var(
 label{font-size:12px;color:var(--mu)}
 .note{color:var(--mu);font-size:13px;line-height:1.45}
 .sets{margin:8px 0;font-size:14px;color:#d5ded9}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}.cal b{aspect-ratio:1;display:grid;place-items:center;border-radius:12px;font-size:14px;font-weight:600;background:#2a2d2b;color:#8a948f}.cal b.on{background:var(--gr);color:var(--ink)}.cal b.fut{background:none;border:1px dashed #2a2d2b}.cal b.cur{outline:2px solid var(--tx);outline-offset:1px}.cal .h{text-align:center;font-size:12px;color:var(--mu)}.mg{display:grid;gap:14px 10px;margin-top:12px}.mm{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}.mm b{aspect-ratio:1;border-radius:3px;background:#2a2d2b}.mm b.on{background:var(--gr)}.mm b.fut{background:none;border:1px solid #2a2d2b}.mm b.cur{outline:1px solid var(--tx)}
+.leg{display:flex;gap:14px;font-size:12px;color:var(--mu);margin-top:12px;align-items:center}.leg i{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:5px;vertical-align:-1px}.cn{background:none;border:1px solid var(--card2);color:var(--tx);border-radius:12px;min-width:44px;min-height:44px;font-size:18px}.cn:disabled{opacity:.3}
 .hist{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--ln);font-size:15px}
 .toast{position:fixed;left:50%;top:calc(12px + env(safe-area-inset-top,0px));transform:translateX(-50%);background:var(--gr);color:var(--ink);padding:10px 18px;border-radius:99px;font-weight:700;z-index:9}
 </style>
@@ -207,7 +209,7 @@ function evo(){
  const m=metrics(),rows=Object.keys(m.best).map(k=>`<div class="hist"><span>${EX[k]?.n||k}</span><span style="color:var(--gr)">e1RM estimado ≈ ${m.best[k].toFixed(1)} kg</span></div>`).join("");
  const vol={};S.sets.filter(s=>!s.warm).forEach(s=>{vol[s.day]=(vol[s.day]||0)+s.w*s.r});
  const days=Object.keys(vol).sort().slice(-7),mx=Math.max(1,...days.map(d=>vol[d]));
- return`<div class="card"><h2>Evolução</h2>${days.length?`<div class="cap">Volume por sessão (carga × reps)</div><div style="display:flex;gap:6px;align-items:flex-end;height:110px;margin:10px 0">${days.map(d=>`<div style="flex:1;text-align:center"><div style="background:var(--gr);border-radius:8px 8px 0 0;height:${vol[d]/mx*90}px"></div><div class="note">${d.slice(8)}/${d.slice(5,7)}</div></div>`).join("")}</div><p class="note">Volume não representa sozinho o estímulo muscular e não é comparável entre exercícios.</p>`:`<p class="note">Registre séries para ver sua evolução.</p>`}</div>
+ return`${calendar()}<div class="card"><h2>Evolução</h2>${days.length?`<div class="cap">Volume por sessão (carga × reps)</div><div style="display:flex;gap:6px;align-items:flex-end;height:110px;margin:10px 0">${days.map(d=>`<div style="flex:1;text-align:center"><div style="background:var(--gr);border-radius:8px 8px 0 0;height:${vol[d]/mx*90}px"></div><div class="note">${d.slice(8)}/${d.slice(5,7)}</div></div>`).join("")}</div><p class="note">Volume não representa sozinho o estímulo muscular e não é comparável entre exercícios.</p>`:`<p class="note">Registre séries para ver sua evolução.</p>`}</div>
  <div class="card"><h2>Recordes (estimativa)</h2>${rows||`<p class="note">Sem recordes ainda. Estimativas de 1RM são orientativas, não força real.</p>`}</div>`}
 function best(){
  const names=Object.keys(EX);
@@ -215,9 +217,9 @@ function best(){
  return`<div class="hist"><span>${EX[k].n}<div class="note">${EX[k].m}</div></span><span class="pill" style="${st==="Desconhecido"?"background:#222;color:#888":""}">${st}</span></div>`}).join("")}
  <p class="note" style="margin-top:10px">Dominado = 5+ dias de registro e, nas 3 últimas sessões, todas as séries dentro da faixa (consistência, não carga alta). Ver um exercício não conta como experimentar: é preciso registrar.</p></div>`}
 function prof(){
- return`<div class="card"><h2>Perfil e dados</h2><p class="note">Seus dados ficam neste aparelho. Exportar gera um backup.</p>
- <button class="cta" style="min-height:50px;font-size:16px" data-act="export">Baixar backup JSON</button>
- <button class="ghost" data-act="import">Restaurar backup JSON</button>
+ return`${pendImp()}<div class="card"><h2>Perfil e dados</h2><p class="note">Seus dados ficam neste aparelho. Exportar gera um backup.</p>
+ <button class="cta" style="min-height:50px;font-size:16px" data-act="export">Exportar backup (JSON)</button>
+ <button class="ghost" data-act="import">Importar backup (JSON)</button>
  <button class="ghost" data-act="demo">${S.demo?"Remover":"Carregar"} dados de demonstração</button>
  <p class="note" style="margin-top:10px">Demonstração (supino 20 kg: 5, 5, 6) é fictícia e fica marcada; nunca misturada ao histórico real.</p></div>
  <div class="card"><h2>Histórico de XP</h2>${S.xp.slice(-8).reverse().map(x=>`<div class="hist"><span>${x.why}</span><span style="color:var(--gr)">+${x.amt}</span></div>`).join("")||`<p class="note">Sem eventos ainda. XP nunca é removido.</p>`}</div>`}
@@ -297,7 +299,7 @@ function findDiscovery(){
  const c=REL.filter(([f,t])=>hab.includes(f)&&EX[t]&&!tried(t)&&!L.includes(t)&&G.includes(M[t][0])&&!pg.includes(M[t][0])&&!blockedDisc(t));
  c.sort((a,b)=>L.includes(b[0])-L.includes(a[0]));
  return c[0]?{f:c[0][0],t:c[0][1],tipo:c[0][2],why:c[0][3],g:M[c[0][1]][0]}:null}
-function extras(){const l=Object.keys(D()).filter(k=>EX[k]&&(D()[k].state==="accepted"||(D()[k].state==="unlocked"&&D()[k].day===TODAY))).map(k=>[k,2,1,5,1]);const c=findDiscovery();if(c&&!l.some(x=>x[0]===c.t))l.push([c.t,2,1,5,1]);return l}
+function extras(){const pl=(curDay()?PLANS[curDay()].l:[]).map(x=>x[0]);const l=Object.keys(D()).filter(k=>EX[k]&&!pl.includes(k)&&(D()[k].state==="accepted"||(D()[k].state==="unlocked"&&D()[k].day===TODAY))).map(k=>[k,2,1,5,1]);const c=findDiscovery();if(c&&!l.some(x=>x[0]===c.t))l.push([c.t,2,1,5,1]);return l}
 function discover2(){
  const c=findDiscovery();if(!c)return"";const E=EX[c.t],F=EX[c.f],a=`data-k="${c.t}" data-f="${c.f}" data-ti="${c.tipo}"`;
  return`<div class="card"><div class="row"><span class="pill">Descoberta opcional</span><span style="color:var(--gr);font-size:22px">✦</span></div>
@@ -305,6 +307,53 @@ function discover2(){
  <div class="box"><b>Por que apareceu</b><span>Você já treina ${F.n.toLowerCase()} com frequência (3+ sessões) e ainda não registrou ${E.n.toLowerCase()}. ${c.why} Hoje o treino inclui ${c.g}.</span></div>
  <p class="note">Objetivo: registrar ao menos uma série real (conta mesmo sem tocar em aceitar). Sem carga ou repetições obrigatórias; comece de forma conservadora. Não altera o seu treino planejado.</p>
  <button class="cta" data-d="accept" ${a}>Aceitar descoberta</button><button class="ghost" data-d="later" ${a}>Adiar</button><button class="ghost" data-d="decline" ${a}>Recusar</button></div>`}
+let pendingImport=null;
+const bkName=()=>"gymquest-backup-"+TODAY+".json";
+const readTxt=f=>f.text?f.text():new Promise((r,j)=>{const x=new FileReader();x.onload=()=>r(x.result);x.onerror=j;x.readAsText(f)});
+const pendImp=()=>pendingImport?`<div class="card"><h2>Restaurar backup?</h2><p class="note">O arquivo tem ${pendingImport.sets.length} série(s) e ${pendingImport.xp.length} evento(s) de XP${pendingImport._n?` (${pendingImport._n} registro(s) inválido(s) ignorado(s))`:""}. Isso substitui os dados atuais deste aparelho.</p><button class="cta" data-act="import_ok" style="min-height:50px;font-size:16px">Substituir meus dados</button><button class="ghost" data-act="import_no">Cancelar</button></div>`:"";
+async function doExport(){
+ const txt=JSON.stringify(Object.assign({app:"gymquest",v:1,exportedAt:new Date().toISOString()},S),null,2);
+ try{
+  const P=window.Capacitor&&window.Capacitor.Plugins;
+  if(P&&P.Filesystem&&P.Share){const f=await P.Filesystem.writeFile({path:bkName(),data:txt,directory:"CACHE",encoding:"utf8"});await P.Share.share({title:"Backup GymQuest",files:[f.uri],dialogTitle:"Salvar backup"});return}
+  const file=new File([txt],bkName(),{type:"application/json"});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:"Backup GymQuest"});return}
+  const u=URL.createObjectURL(new Blob([txt],{type:"application/json"})),l=document.createElement("a");l.href=u;l.download=bkName();document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);toast("Backup baixado");
+ }catch(e){if(e&&(e.name==="AbortError"||/cancel/i.test(e.message||"")))return;try{await navigator.clipboard.writeText(txt);toast("Não deu para salvar o arquivo; backup copiado como texto")}catch(_){toast("Falha ao exportar")}}}
+function cleanBackup(d){
+ if(!d||!Array.isArray(d.sets)||!Array.isArray(d.xp))throw 0;
+ const str=(v,n=80)=>String(v==null?"":v).replace(/[<>&"]/g,"").slice(0,n),dt=v=>/^\d{4}-\d{2}-\d{2}$/.test(v)?v:null,obj=o=>o&&typeof o==="object"&&!Array.isArray(o)?o:{};
+ const sets=d.sets.filter(x=>x&&EX[x.ex]&&dt(x.day)&&isFinite(x.w)&&x.w>=0&&x.r>0).map(x=>({id:str(x.id||uid()),ex:x.ex,w:+x.w,r:Math.round(+x.r),rpe:null,warm:!!x.warm,day:x.day,ts:+x.ts||Date.parse(x.day),demo:x.demo?true:undefined}));
+ const xp=d.xp.filter(x=>x&&x.id&&isFinite(x.amt)).map(x=>({id:str(x.id),amt:+x.amt,why:str(x.why),at:+x.at||0,demo:x.demo?true:undefined}));
+ const disc={};Object.entries(obj(d.disc)).forEach(([k,v])=>{if(EX[k]&&v&&["accepted","later","declined","unlocked"].includes(v.state))disc[k]={id:str(v.id),from:str(v.from),tipo:str(v.tipo),state:v.state,at:+v.at||0,day:v.day?str(v.day,10):undefined,hist:[]}});
+ const ch={};Object.entries(obj(d.ch)).forEach(([k,v])=>{if(dt(k))ch[k]=str(v,20)});const fin={};Object.keys(obj(d.fin)).forEach(k=>{if(dt(k))fin[k]=true});
+ const pain={};Object.entries(obj(d.pain)).forEach(([k,v])=>{if(EX[k])pain[k]=!!v});
+ return{sets,xp,ch,found:{},pain,demo:!!d.demo,fin,disc,_n:d.sets.length-sets.length}}
+function doImport(){const i=document.createElement("input");i.type="file";i.style.display="none";document.body.appendChild(i);
+ i.onchange=async()=>{try{const f=i.files&&i.files[0];if(!f)return;pendingImport=cleanBackup(JSON.parse(await readTxt(f)));render()}catch(e){toast("Arquivo de backup inválido")}finally{i.remove()}};
+ i.click()}
+let calOff=0;
+let calMode="mes";
+function calendar(){
+ const n=new Date(),ref=new Date(n.getFullYear(),n.getMonth()+calOff,1),tr=new Set(S.sets.filter(s=>!s.warm).map(s=>s.day)),f0=[...tr].sort()[0]||TODAY;
+ const MS=["jan","fev","mar","abr","mai","jun","jul","ago","set","out","nov","dez"];
+ let ms=[],step=1,nm="";
+ if(calMode==="mes"){ms=[[ref.getFullYear(),ref.getMonth()]];nm=ref.toLocaleDateString("pt-BR",{month:"long",year:"numeric"})}
+ else if(calMode==="sem"){const y=ref.getFullYear(),h=ref.getMonth()<6?0:6;for(let i=0;i<6;i++)ms.push([y,h+i]);step=6;nm=(h?"2º":"1º")+" semestre "+y}
+ else if(calMode==="ano"){const y=ref.getFullYear();for(let i=0;i<12;i++)ms.push([y,i]);step=12;nm=String(y)}
+ else{for(let d=new Date(+f0.slice(0,4),+f0.slice(5,7)-1,1);d<=n;d=new Date(d.getFullYear(),d.getMonth()+1,1))ms.push([d.getFullYear(),d.getMonth()]);nm=tr.size?"Desde "+f0.split("-").reverse().join("/"):"Sem registros"}
+ const L=ms[ms.length-1],atEnd=L[0]*12+L[1]>=n.getFullYear()*12+n.getMonth();
+ let cnt=0,el=0;
+ const mon=(y,m,full)=>{const dim=new Date(y,m+1,0).getDate(),lead=(new Date(y,m,1).getDay()+6)%7;let c="";for(let i=0;i<lead;i++)c+="<i></i>";
+  for(let d=1;d<=dim;d++){const k=day(new Date(y,m,d)),on=tr.has(k);if(k<=TODAY&&(calMode!=="tudo"||k>=f0)){el++;if(on)cnt++}
+   const cl=`${on?"on":k>TODAY?"fut":""} ${k===TODAY?"cur":""}`;c+=full?`<b class="${cl}" aria-label="${d}: ${on?"treinou":k>TODAY?"futuro":"sem treino"}">${d}</b>`:`<b class="${cl}"></b>`}return c};
+ let body;
+ if(calMode==="mes"){let c="";"SEGTERQUAQUISEXSÁBDOM".match(/.{3}/g).forEach(h=>c+=`<span class="h">${h.slice(0,1)}</span>`);body=`<div class="cal">${c}${mon(ms[0][0],ms[0][1],true)}</div>`}
+ else{const cols=calMode==="sem"?3:calMode==="ano"?4:ms.length<=12?4:ms.length<=24?6:8;body=`<div class="mg" style="grid-template-columns:repeat(${cols},1fr)">${ms.map(([y,m])=>`<div><div class="note" style="margin-bottom:4px">${MS[m]}${calMode==="tudo"||m===0?" "+String(y).slice(2):""}</div><div class="mm">${mon(y,m,false)}</div></div>`).join("")}</div>`}
+ const hdr=[["mes","Mês"],["sem","Semestre"],["ano","Ano"],["tudo","Tudo"]].map(([k,l])=>`<button class="opt ${calMode===k?"on":""}" style="min-height:38px;width:auto;display:inline-block;padding:4px 12px;margin:0 6px 6px 0" data-calm="${k}">${l}</button>`).join("");
+ const nav=calMode==="tudo";
+ return`<div class="card"><div>${hdr}</div><div class="row">${nav?"<span></span>":`<button class="cn" data-cal="${-step}" aria-label="Período anterior">‹</button>`}<div style="text-align:center"><h2 style="margin:0;text-transform:capitalize">${nm}</h2><div class="note">${cnt} de ${el} dia(s) com treino</div></div>${nav?"<span></span>":`<button class="cn" data-cal="${step}" ${atEnd?"disabled":""} aria-label="Próximo período">›</button>`}</div>
+ ${body}<div class="leg"><span><i style="background:var(--gr)"></i>Treinou</span><span><i style="background:#2a2d2b"></i>Sem treino</span></div></div>`}
 const NAV=[["home","🏠","Início"],["train","🏋️","Treino"],["evo","📈","Evolução"],["best","👾","Bestiário"],["prof","👤","Perfil"]];
 function render(){
  let h={home,train,evo,best,prof}[tab]();if(tab==="home"&&!DOW[new Date().getDay()]){const i=h.indexOf("<!--P-->");h=restCard()+(i<0?"":h.slice(i))}
@@ -314,6 +363,8 @@ function render(){
 document.addEventListener("click",ev=>{
  const t=ev.target.closest("button,input");if(!t)return;
  if(t.dataset.go){tab=t.dataset.go;render();scrollTo(0,0);return}
+ if(t.dataset.calm){calMode=t.dataset.calm;calOff=0;render();return}
+ if(t.dataset.cal){calOff+=+t.dataset.cal;render();return}
  if(t.dataset.day){selDay=t.dataset.day;render();return}
  if(t.dataset.pick!==undefined){pick=+t.dataset.pick;render();return}
  if(t.dataset.edit){const s=S.sets.find(x=>x.id===t.dataset.edit);if(s){editId=s.id;render();const g=i=>document.getElementById(i+"-"+s.ex);if(g("w")){g("w").value=s.w;g("r").value=s.r;g("a").checked=s.warm;g("r").focus();toast("Editando série: ajuste e toque em Concluir")}}return}
@@ -327,6 +378,10 @@ document.addEventListener("click",ev=>{
   {const o=D()[k],rl=REL.find(x=>x[1]===k);if((!o||o.state!=="unlocked")&&rl&&!document.getElementById("a-"+k).checked&&S.sets.filter(x=>x.ex===k&&!x.warm).length===1){const q=D()[k]=o||{id:uid(),from:rl[0],tipo:rl[2],hist:[]};q.state="unlocked";q.at=Date.now();q.day=TODAY;q.hist.push(["unlocked",q.at]);award("disc:"+k,30,"Descoberta: "+EX[k].n)}}save();render();return}
  if(t.dataset.d){const k=t.dataset.k,o=D()[k]||(D()[k]={id:uid(),from:t.dataset.f,tipo:t.dataset.ti,hist:[]}),st={accept:"accepted",later:"later",decline:"declined"}[t.dataset.d];o.state=st;o.at=Date.now();o.hist.push([st,o.at]);save();toast(st==="accepted"?"Registre uma série para desbloquear":"Sem problema");if(st==="accepted")tab="train";render();return}
  const a=t.dataset.act;if(!a)return;
+ if(a==="export")doExport();
+ if(a==="import")doImport();
+ if(a==="import_ok"&&pendingImport){const {_n,...c}=pendingImport;S=c;pendingImport=null;save();render();toast("Backup restaurado")}
+ if(a==="import_no"){pendingImport=null;render()}
  if(a==="accept"){S.ch[TODAY]="accepted";save();toast("Desafio aceito");render()}
  if(a==="postpone"){S.ch[TODAY]="postponed";save();toast("Adiado, sem problema");render()}
  if(a==="refuse"){S.ch[TODAY]="refused";save();toast("Tudo bem");render()}
@@ -336,8 +391,8 @@ document.addEventListener("click",ev=>{
  if(a==="finish"){if(!S.sets.some(s=>s.day===TODAY)){toast("Registre ao menos uma série");return}S.fin[TODAY]=true;award("done:"+TODAY,50,"Sessão concluída");save();toast("Treino concluído");render()}
  if(a==="demo"){if(S.demo){S.sets=S.sets.filter(s=>!s.demo);S.xp=S.xp.filter(x=>!x.demo);S.demo=false}else{
   const y=day(new Date(Date.now()-864e5*3));[5,5,6].forEach(r=>S.sets.push({id:uid(),ex:"supino",w:20,r,rpe:null,warm:false,day:y,ts:Date.now()-864e5*3,demo:true}));S.demo=true}save();render()}
- if(a==="import"){const i=document.createElement("input");i.type="file";i.accept="application/json,.json";i.onchange=async()=>{try{const d=JSON.parse(await i.files[0].text());if(!Array.isArray(d.sets)||!Array.isArray(d.xp))throw 0;if(!confirm("Substituir os dados deste aparelho pelo backup?"))return;S=Object.assign({sets:[],xp:[],ch:{},found:{},pain:{},demo:false,fin:{}},d);save();render();toast("Backup restaurado")}catch(e){toast("Arquivo inválido")}};i.click()}
- if(a==="export"){const b=new Blob([JSON.stringify(S,null,2)],{type:"application/json"}),u=URL.createObjectURL(b),l=document.createElement("a");l.href=u;l.download="gymquest-backup.json";l.click();URL.revokeObjectURL(u)}
+ if(a==="importOld"){const i=document.createElement("input");i.type="file";i.accept="application/json,.json";i.onchange=async()=>{try{const d=JSON.parse(await i.files[0].text());if(!Array.isArray(d.sets)||!Array.isArray(d.xp))throw 0;if(!confirm("Substituir os dados deste aparelho pelo backup?"))return;S=Object.assign({sets:[],xp:[],ch:{},found:{},pain:{},demo:false,fin:{}},d);save();render();toast("Backup restaurado")}catch(e){toast("Arquivo inválido")}};i.click()}
+ if(a==="exportOld"){const b=new Blob([JSON.stringify(S,null,2)],{type:"application/json"}),u=URL.createObjectURL(b),l=document.createElement("a");l.href=u;l.download="gymquest-backup.json";l.click();URL.revokeObjectURL(u)}
 });
 addEventListener("online",render);addEventListener("offline",render);
 render();

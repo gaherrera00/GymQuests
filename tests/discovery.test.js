@@ -77,3 +77,38 @@ test("descoberta conta ao registrar direto, sem aceitar",()=>{
  const w=W("ter",{sets:sets("puxada",D3)});ev(w,"tab='train';render()");
  w.document.getElementById("w-barra").value="0";w.document.getElementById("r-barra").value="2";click(w,'[data-save="barra"]');
  assert.equal(ev(w,"D().barra.state"),"unlocked");assert.equal(ev(w,"S.xp.filter(x=>x.id==='disc:barra').length"),1);w.close()});
+test("calendário: dias treinados em verde, demais em cinza, navegação de mês",()=>{
+ const w=W("qui",{sets:sets("supino",["2026-11-02","2026-11-09"]).concat([{id:"w",ex:"supino",w:1,r:1,rpe:null,warm:true,day:"2026-11-05",ts:1}]).concat(sets("supino",["2026-10-30"]))});
+ ev(w,"tab='evo';render()");const q=s=>w.document.querySelectorAll(s);
+ assert.equal(q(".cal b.on").length,2);assert.equal(q(".cal b").length,30);assert.equal(q(".cal b.cur").length,1);
+ assert.equal(q(".cal b.fut").length,18);
+ click(w,'[data-cal="-1"]');assert.equal(q(".cal b.on").length,1);assert.equal(q(".cal b").length,31);
+ assert.ok(w.document.querySelector('[data-cal="1"]'));click(w,'[data-cal="1"]');assert.equal(q(".cal b.on").length,2);
+ assert.ok(w.document.querySelector('[data-cal="1"]').disabled);w.close()});
+const tick=()=>new Promise(r=>setTimeout(r,30));
+test("exportar (Capacitor) e importar: ida e volta sem perda; HTML malicioso é limpo",async()=>{
+ const w=W("qui",{sets:sets("supino",D3),xp:[{id:"a",amt:20,why:"Teste",at:1}],ch:{"2026-10-20":"done"}});
+ let data,shared;w.Capacitor={Plugins:{Filesystem:{writeFile:async o=>{data=o.data;return{uri:"file:///"+o.path}}},Share:{share:async o=>{shared=o}}}};
+ ev(w,"tab='prof';render()");click(w,'[data-act="export"]');await tick();
+ assert.match(shared.files[0],/gymquest-backup-.*\.json/);const j=JSON.parse(data);assert.equal(j.sets.length,3);assert.equal(j.app,"gymquest");
+ const bad=JSON.stringify({sets:j.sets.concat([{ex:"inexistente",day:"2026-10-20",w:1,r:1}]),xp:[{id:"x",amt:5,why:"<img src=x onerror=alert(1)>"}],ch:{},disc:{}});
+ const imp=async txt=>{click(w,'[data-act="import"]');const i=w.document.querySelector('input[type=file]');
+  Object.defineProperty(i,"files",{value:[new w.File([txt],"b.json")]});i.dispatchEvent(new w.Event("change"));await tick()};
+ await imp(data);assert.match(w.document.getElementById("app").textContent,/Restaurar backup\?/);
+ ev(w,"S.sets=[];S.xp=[]");click(w,'[data-act="import_ok"]');assert.equal(ev(w,"S.sets.length"),3);assert.equal(ev(w,"S.xp.length"),1);assert.equal(ev(w,"S.ch['2026-10-20']"),"done");
+ await imp(bad);assert.equal(ev(w,"pendingImport._n"),1);click(w,'[data-act="import_ok"]');assert.doesNotMatch(ev(w,"JSON.stringify(S.xp)"),/</);
+ await imp("{ruim");assert.equal(ev(w,"pendingImport"),null);w.close()});
+test("calendário: mês, semestre, ano e desde o primeiro registro",()=>{
+ const w=W("qui",{sets:sets("supino",["2026-11-02","2026-11-09","2026-10-30","2026-03-10","2025-12-05"])});
+ ev(w,"tab='evo';render()");const q=s=>w.document.querySelectorAll(s),txt=()=>w.document.getElementById("app").textContent;
+ click(w,'[data-calm="sem"]');assert.equal(q(".mg > div").length,6);assert.equal(q(".mm b.on").length,3);assert.match(txt(),/2º semestre 2026/);
+ click(w,'[data-cal="-6"]');assert.match(txt(),/1º semestre 2026/);assert.equal(q(".mm b.on").length,1);assert.ok(!w.document.querySelector('[data-cal="6"]').disabled);
+ click(w,'[data-calm="ano"]');assert.equal(q(".mg > div").length,12);assert.equal(q(".mm b.on").length,4);assert.match(txt(),/2026/);
+ click(w,'[data-calm="tudo"]');assert.equal(q(".mg > div").length,12);assert.equal(q(".mm b.on").length,5);assert.match(txt(),/Desde 05\/12\/2025/);assert.equal(q("[data-cal]").length,0);
+ click(w,'[data-calm="mes"]');assert.equal(q(".cal b").length,30);assert.equal(q(".cal b.on").length,2);w.close()});
+test("backup de 17/11: importa limpo, 19 séries efetivas, 210 XP, sem card duplicado",async()=>{
+ const txt=fs.readFileSync("/mnt/user-data/outputs/gymquest-backup-2026-11-17.json","utf8");
+ const w=W("ter",{});const c=ev(w,"cleanBackup("+txt+")");assert.equal(c.sets.length,20);assert.equal(c._n,0);
+ ev(w,"S=cleanBackup("+txt+");delete S._n;tab='train';render()");
+ assert.equal(ev(w,"S.sets.filter(s=>!s.warm).length"),19);assert.equal(ev(w,"xpTotal()"),210);
+ const t=[...w.document.querySelectorAll("#app h2")].filter(h=>h.textContent==="Rosca inclinada").length;assert.equal(t,1);w.close()});
